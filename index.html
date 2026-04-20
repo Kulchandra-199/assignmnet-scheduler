@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Intralink GTM Launchpad — Japan trade-mission scheduler: 10 startups, 5 corporates, Rooms A &amp; B, sector rules, optional corporate delay window, Export Report.">
+  <title>Intralink GTM Launchpad Scheduler</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=Lexend:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Lexend', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            display: ['Fraunces', 'Georgia', 'serif']
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      --font-display: "Fraunces", Georgia, serif;
+      --font-ui: "Lexend", system-ui, sans-serif;
+      --bg0: #0c0f12;
+      --bg1: #121820;
+      --surface: #181f28;
+      --surface2: #222b38;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #eef2f7;
+      --muted: #8b99ad;
+      --accent: #e85d4c;
+      --accent-dim: rgba(232, 93, 76, 0.15);
+      --gold: #d4a853;
+      --gold-dim: rgba(212, 168, 83, 0.12);
+      --ok: #5cbf8f;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+      --radius: 14px;
+      --radius-sm: 10px;
+    }
+
+    [data-theme="light"] {
+      --bg0: #f4f1eb;
+      --bg1: #ebe6dc;
+      --surface: #ffffff;
+      --surface2: #f7f4ee;
+      --border: rgba(15, 20, 25, 0.08);
+      --text: #141a22;
+      --muted: #5c6575;
+      --accent: #c43d2e;
+      --accent-dim: rgba(196, 61, 46, 0.1);
+      --gold: #9a7324;
+      --gold-dim: rgba(154, 115, 36, 0.1);
+      --ok: #2d8a5e;
+      --shadow: 0 20px 60px rgba(20, 26, 34, 0.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      font-family: var(--font-ui);
+      font-weight: 400;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(232, 93, 76, 0.12), transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, rgba(212, 168, 83, 0.08), transparent 50%),
+        linear-gradient(165deg, var(--bg0), var(--bg1));
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    [data-theme="light"] body {
+      background:
+        radial-gradient(1000px 500px at 0% 0%, rgba(212, 168, 83, 0.15), transparent 50%),
+        linear-gradient(180deg, var(--bg0), #e8e3d9);
+    }
+
+    header.app-header {
+      margin-bottom: 1.75rem;
+      animation: rise 0.7s ease-out both;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .app-header-surface {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1.25rem;
+      padding: 1.25rem 1.35rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, transparent 42%),
+        var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    [data-theme="light"] .app-header-surface {
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.85) 0%, var(--surface) 38%),
+        var(--surface);
+    }
+
+    @media (min-width: 640px) {
+      .app-header-surface {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+        padding: 1.35rem 1.5rem;
+      }
+    }
+
+    .brand {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .brand-copy {
+      min-width: 0;
+    }
+
+    .brand-kicker {
+      margin: 0 0 0.35rem;
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      color: var(--muted);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.4rem, 2.8vw, 1.85rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+    }
+
+    .brand p {
+      margin: 0.55rem 0 0;
+      font-size: 0.875rem;
+      line-height: 1.55;
+      color: var(--muted);
+      max-width: 54ch;
+    }
+
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.35rem;
+      margin: 0;
+      width: 100%;
+      max-width: 100%;
+      border-radius: 999px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      align-self: stretch;
+    }
+
+    @media (min-width: 640px) {
+      .header-actions {
+        flex-shrink: 0;
+        align-self: center;
+        justify-content: flex-end;
+        width: fit-content;
+      }
+    }
+
+    /* Narrow screens: drop the “mega pill”, stack rows, full-width scope + Export */
+    @media (max-width: 639px) {
+      .app-header-surface {
+        padding: 1rem 0.9rem;
+        gap: 1rem;
+      }
+
+      .header-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: stretch;
+        gap: 0.625rem 0.5rem;
+        padding: 0.75rem;
+        border-radius: var(--radius);
+      }
+
+      .header-actions > .btn-ghost {
+        width: 100%;
+        min-height: 2.5rem;
+      }
+
+      .header-actions > .header-export-scope {
+        grid-column: 1 / -1;
+      }
+
+      .header-actions > .btn-primary {
+        grid-column: 1 / -1;
+        width: 100%;
+        min-height: 2.75rem;
+        font-size: 0.875rem;
+      }
+
+      .header-export-scope {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.4rem;
+        padding: 0;
+        width: 100%;
+      }
+
+      .export-scope-label {
+        white-space: normal;
+        line-height: 1.35;
+      }
+
+      .export-scope-select {
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+        min-height: 2.625rem;
+        padding: 0.5rem 0.65rem;
+      }
+    }
+
+    select:focus-visible,
+    input:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      animation: rise 0.65s ease-out 0.05s both;
+    }
+
+    .panel-lg { animation-delay: 0.1s; }
+
+    .panel-head {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .aside-panel-head {
+      justify-content: flex-end;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .panel-body { padding: 1rem 1.25rem 1.25rem; }
+
+    .step {
+      margin-bottom: 1.25rem;
+    }
+
+    .step:last-child { margin-bottom: 0; }
+
+    .step h3 {
+      margin: 0 0 0.35rem;
+      font-size: 0.9375rem;
+      font-weight: 600;
+    }
+
+    .step p.hint {
+      margin: 0 0 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
+
+    .row-edit {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.65rem 0.75rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.5rem;
+    }
+
+    .row-edit span {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    select {
+      font-family: var(--font-ui);
+      font-size: 0.8125rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      max-width: 140px;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.85rem 1rem;
+      background: var(--accent-dim);
+      border: 1px solid rgba(232, 93, 76, 0.25);
+      border-radius: var(--radius-sm);
+    }
+
+    .toggle-row input {
+      width: 1.1rem;
+      height: 1.1rem;
+      margin-top: 0.15rem;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .toggle-row label {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .delay-panel {
+      margin-top: 0.75rem;
+    }
+
+    .delay-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem 0.75rem;
+      align-items: center;
+      margin-top: 0.75rem;
+    }
+
+    .delay-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+
+    .delay-select {
+      font-family: var(--font-ui);
+      font-size: 0.8125rem;
+      padding: 0.45rem 0.5rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      width: 100%;
+    }
+
+    details.help {
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    details.help summary {
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table.schedule {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.8125rem;
+    }
+
+    table.schedule th,
+    table.schedule td {
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      padding: 0.85rem 1rem;
+      vertical-align: top;
+    }
+
+    table.schedule th:first-child,
+    table.schedule td:first-child {
+      border-left: 1px solid var(--border);
+      width: 5.5rem;
+    }
+
+    table.schedule thead th {
+      background: var(--surface2);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      font-weight: 600;
+      text-align: left;
+    }
+
+    table.schedule thead th:not(:first-child) { text-align: center; }
+
+    table.schedule tbody tr:first-child td,
+    table.schedule tbody tr:first-child th {
+      border-top: 1px solid var(--border);
+    }
+
+    table.schedule .time {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 0.9375rem;
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    table.schedule td.slot {
+      text-align: center;
+      min-width: 200px;
+      background: var(--surface);
+    }
+
+    table.schedule tr:hover td.slot { background: var(--surface2); }
+
+    .cell-empty {
+      color: var(--muted);
+      font-style: italic;
+      font-size: 0.8125rem;
+    }
+
+    .meet {
+      text-align: center;
+    }
+
+    .meet .s {
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+
+    .meet .c {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.15rem;
+    }
+
+    .tag {
+      display: inline-block;
+      margin-top: 0.45rem;
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      background: var(--gold-dim);
+      color: var(--gold);
+      border: 1px solid rgba(212, 168, 83, 0.25);
+    }
+
+    footer.note {
+      margin-top: 1rem;
+      padding: 0 1.25rem 1.25rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      padding-top: 1rem;
+    }
+
+    .header-export-scope {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem 0.5rem;
+      padding: 0 0.15rem;
+    }
+
+    .export-scope-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .export-scope-select {
+      font-family: var(--font-ui);
+      font-size: 0.8125rem;
+      padding: 0.4rem 0.5rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      min-width: 8.5rem;
+      max-width: 14rem;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 1.25rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(120%);
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.65rem 1.1rem;
+      border-radius: 999px;
+      font-size: 0.8125rem;
+      box-shadow: var(--shadow);
+      z-index: 100;
+      opacity: 0;
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .warn-banner {
+      margin-top: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+      background: var(--accent-dim);
+      border: 1px solid rgba(232, 93, 76, 0.3);
+      color: var(--text);
+    }
+
+    .sector-scroll {
+      max-height: min(52vh, 22rem);
+      overflow-y: auto;
+      padding-right: 0.25rem;
+    }
+
+    .sector-group-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin: 0.75rem 0 0.35rem;
+    }
+
+    .sector-group-label:first-child { margin-top: 0; }
+
+    .print-handout {
+      display: none;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        color: #111;
+      }
+      .no-print { display: none !important; }
+      .print-handout {
+        display: block !important;
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 0 0.5in 0.5in;
+        font-family: Georgia, 'Times New Roman', serif;
+      }
+      .print-handout h1 {
+        font-size: 1.35rem;
+        margin: 0 0 0.25rem;
+        border-bottom: 2px solid #111;
+        padding-bottom: 0.35rem;
+      }
+      .print-handout .meta {
+        font-size: 0.8rem;
+        color: #444;
+        margin-bottom: 1.25rem;
+      }
+      .print-handout ol {
+        margin: 0;
+        padding-left: 1.25rem;
+      }
+      .print-handout li {
+        margin-bottom: 0.65rem;
+        line-height: 1.45;
+      }
+      .print-handout .ph-time { font-weight: 700; }
+      .print-handout .ph-room { color: #333; }
+      .tw-shell { max-width: none !important; padding: 0 !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+  <div class="tw-shell mx-auto max-w-6xl px-4 py-6 md:px-8 md:py-8">
+    <header class="app-header no-print">
+      <div class="app-header-surface">
+        <div class="brand">
+          <div class="brand-copy">
+            <p class="brand-kicker">Japan trade mission · scheduler</p>
+            <h1>Intralink <span class="text-[var(--muted)] font-medium">GTM Launchpad</span></h1>
+            <p>10 Western startups × 5 Japanese corporates · 10:00–16:00 · Rooms A &amp; B · roster from <strong>Participants (1).xlsx</strong></p>
+          </div>
+        </div>
+        <div class="header-actions no-print">
+          <button type="button" class="btn-ghost" id="btnTheme" aria-label="Toggle light or dark theme">Theme</button>
+          <button type="button" class="btn-ghost" id="btnCopy">Copy TSV</button>
+          <div class="header-export-scope">
+            <label class="export-scope-label" for="exportScope">Handout &amp; TSV for</label>
+            <select id="exportScope" class="export-scope-select" aria-label="Export schedule for one company or everyone">
+              <option value="__ALL__">Everyone (full day)</option>
+            </select>
+          </div>
+          <button type="button" class="btn-primary" id="btnPrint">Export Report</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,20rem)_1fr] lg:items-start">
+      <aside class="panel no-print" aria-label="Sectors, corporate delay, and coverage warnings">
+        <div class="panel-head aside-panel-head">
+          <span class="tag" id="savedPill" style="margin:0;opacity:0.55;transition:opacity 0.2s;">Saved</span>
+        </div>
+        <div class="panel-body">
+          <div class="warn-banner no-print mb-3" id="covWarn" hidden aria-live="polite"></div>
+
+          <div class="step">
+            <h3>Sector tags</h3>
+            <p class="hint">Change any company’s sector below — the schedule recomputes on every change. The assignment brief notes corrections for <strong>Sony Sensing</strong> (→ Electronics) and <strong>SeaPower</strong> (→ Energy) versus the spreadsheet defaults.</p>
+            <div class="sector-scroll" id="sectorEditors"></div>
+          </div>
+
+          <div class="step">
+            <h3>Time management · Corporate delay</h3>
+            <p class="hint">Same idea as traffic or a late flight: pick <strong>any corporate</strong> and the <strong>earliest hour</strong> they can take a meeting (slot start time). Until then they are blocked; the grid reflows for everyone else. Defaults match the brief example: <strong>Toyota Next</strong> from <strong>13:00</strong>.</p>
+            <div class="delay-panel">
+              <div class="toggle-row">
+                <input type="checkbox" id="delayEnabled" autocomplete="off">
+                <label for="delayEnabled">Apply delay (no meetings for that corporate in hours <strong>before</strong> the chosen start)</label>
+              </div>
+              <div class="delay-grid">
+                <label class="delay-label" for="delayCorpId">Corporate</label>
+                <label class="delay-label" for="delayFromHour">Earliest slot</label>
+                <select id="delayCorpId" class="delay-select" aria-label="Corporate subject to delay"></select>
+                <select id="delayFromHour" class="delay-select" aria-label="Earliest hour this corporate can meet"></select>
+              </div>
+            </div>
+          </div>
+
+          <details class="help">
+            <summary>Official rules</summary>
+            <p style="margin:0.5rem 0 0;"><strong>Sector match:</strong> startups only meet corporates in the same sector. <strong>No collisions:</strong> a corporate cannot appear in both rooms in the same hour. <strong>Capacity:</strong> each startup gets at least one 1-hour meeting when the sector graph allows it. <strong>Corporate delay:</strong> optionally block one corporate before a chosen hour (e.g. traffic).</p>
+          </details>
+        </div>
+      </aside>
+
+      <section class="panel panel-lg no-print">
+        <div class="panel-head">
+          <h2>Working calendar · Rooms A &amp; B</h2>
+          <span class="no-print" style="font-size:0.75rem;color:var(--muted);" id="genStamp"></span>
+        </div>
+        <div class="table-wrap">
+          <table class="schedule" role="grid" aria-label="Delegation schedule">
+            <thead>
+              <tr>
+                <th scope="col">Time</th>
+                <th scope="col">Room A</th>
+                <th scope="col">Room B</th>
+              </tr>
+            </thead>
+            <tbody id="scheduleBody"></tbody>
+          </table>
+        </div>
+        <footer class="note no-print">
+          Browser print hides this table; scope for print/TSV is set in the <strong>header</strong> next to Export Report.
+        </footer>
+      </section>
+    </div>
+
+    <div class="print-handout" id="printHandout" aria-hidden="true"></div>
+  </div>
+
+  <div class="toast no-print" id="toast" role="status"></div>
+
+  <!-- After Tailwind’s injected CSS so padding / flex aren’t reset by preflight. -->
+  <style>
+    button[type="button"].btn-ghost,
+    button[type="button"].btn-primary,
+    button[type="button"].btn,
+    .btn {
+      font-family: var(--font-ui);
+      font-weight: 500;
+      font-size: 0.8125rem;
+      line-height: 1.25;
+      border-width: 1px;
+      border-style: solid;
+      border-radius: 999px;
+      padding: 0.7rem 1.5rem;
+      margin: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: auto;
+      max-width: none;
+      box-sizing: border-box;
+      background: var(--surface2);
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, transform 0.12s, filter 0.15s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    button[type="button"].btn-ghost:hover,
+    button[type="button"].btn:hover:not(.btn-primary),
+    .btn:hover:not(.btn-primary) {
+      background: var(--surface);
+      border-color: rgba(255, 255, 255, 0.22);
+    }
+
+    button[type="button"].btn-ghost:active,
+    button[type="button"].btn-primary:active,
+    button[type="button"].btn:active,
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    button[type="button"].btn-ghost:focus-visible,
+    button[type="button"].btn-primary:focus-visible,
+    button[type="button"].btn:focus-visible,
+    .btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: transparent;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.06);
+      border-color: transparent;
+    }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    [data-theme="light"] .btn-ghost {
+      background: rgba(15, 20, 25, 0.04);
+      border-color: rgba(15, 20, 25, 0.14);
+    }
+
+    [data-theme="light"] .btn-ghost:hover,
+    [data-theme="light"] .btn:hover:not(.btn-primary) {
+      background: rgba(15, 20, 25, 0.07);
+      border-color: rgba(15, 20, 25, 0.2);
+    }
+  </style>
+
+  <script>
+(function () {
+  const SECTORS = ['Automotive', 'Electronics', 'Energy'];
+  const STORAGE_KEY = 'launchpad-gtm-v4';
+  const TIMES = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00'];
+
+  /** Analyst roster from Participants (1).xlsx — Sony & SeaPower sectors are wrong per brief; use corrections. */
+  const DEFAULT_PARTICIPANTS = [
+    { id: 'C1', name: 'Toyota Next', sector: 'Automotive', type: 'Corp' },
+    { id: 'C2', name: 'Panasonic Energy', sector: 'Electronics', type: 'Corp' },
+    { id: 'C3', name: 'Sony Sensing', sector: 'Automotive', type: 'Corp' },
+    { id: 'C4', name: 'Hitachi Power', sector: 'Energy', type: 'Corp' },
+    { id: 'C5', name: 'Rakuten', sector: 'Energy', type: 'Corp' },
+    { id: 'S1', name: 'QuickCharge', sector: 'Automotive', type: 'Startup' },
+    { id: 'S2', name: 'AeroDrive', sector: 'Automotive', type: 'Startup' },
+    { id: 'S3', name: 'VisionAI', sector: 'Electronics', type: 'Startup' },
+    { id: 'S4', name: 'SolidState', sector: 'Energy', type: 'Startup' },
+    { id: 'S5', name: 'SignalFlow', sector: 'Automotive', type: 'Startup' },
+    { id: 'S6', name: 'GridLock', sector: 'Energy', type: 'Startup' },
+    { id: 'S7', name: 'BioScan', sector: 'Electronics', type: 'Startup' },
+    { id: 'S8', name: 'FlowState', sector: 'Automotive', type: 'Startup' },
+    { id: 'S9', name: 'SkyWay', sector: 'Energy', type: 'Startup' },
+    { id: 'S10', name: 'SeaPower', sector: 'Electronics', type: 'Startup' }
+  ];
+
+  let participants = JSON.parse(JSON.stringify(DEFAULT_PARTICIPANTS));
+  let delayEnabled = false;
+  /** Corporate id — default C1 matches “Toyota from 13:00” brief example */
+  let delayCorpId = 'C1';
+  /** Earliest slot-start hour (10…16) where this corporate may appear; hours strictly before are blocked */
+  let delayFromHour = 13;
+  /** @type {{ rows: Array<{time:string,a:any,b:any}>, uncovered: string[] } | null} */
+  let lastPlan = null;
+  const els = {
+    scheduleBody: document.getElementById('scheduleBody'),
+    sectorEditors: document.getElementById('sectorEditors'),
+    delayEnabled: document.getElementById('delayEnabled'),
+    delayCorpId: document.getElementById('delayCorpId'),
+    delayFromHour: document.getElementById('delayFromHour'),
+    covWarn: document.getElementById('covWarn'),
+    exportScope: document.getElementById('exportScope'),
+    printHandout: document.getElementById('printHandout'),
+    genStamp: document.getElementById('genStamp'),
+    toast: document.getElementById('toast'),
+    btnPrint: document.getElementById('btnPrint'),
+    btnCopy: document.getElementById('btnCopy'),
+    btnTheme: document.getElementById('btnTheme'),
+    savedPill: document.getElementById('savedPill')
+  };
+
+  function participantSetOk(arr) {
+    if (!Array.isArray(arr) || arr.length !== DEFAULT_PARTICIPANTS.length) return false;
+    const seen = new Set();
+    for (const p of arr) {
+      if (!p || !p.id || seen.has(p.id)) return false;
+      if (!DEFAULT_PARTICIPANTS.some((d) => d.id === p.id)) return false;
+      seen.add(p.id);
+    }
+    return seen.size === DEFAULT_PARTICIPANTS.length;
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (Array.isArray(data.participants)) {
+        const next = data.participants.map((p) => {
+          const def = DEFAULT_PARTICIPANTS.find((d) => d.id === p.id);
+          const sector = SECTORS.includes(p.sector) ? p.sector : (def && def.sector) || SECTORS[0];
+          return {
+            id: p.id,
+            name: typeof p.name === 'string' ? p.name : (def && def.name) || String(p.id),
+            sector,
+            type: p.type === 'Corp' || p.type === 'Startup' ? p.type : (def && def.type) || 'Startup'
+          };
+        });
+        if (participantSetOk(next)) participants = next;
+      }
+      if (typeof data.delayEnabled === 'boolean') {
+        delayEnabled = data.delayEnabled;
+        if (typeof data.delayCorpId === 'string' && participants.some((p) => p.id === data.delayCorpId && p.type === 'Corp')) {
+          delayCorpId = data.delayCorpId;
+        }
+        const h = parseInt(data.delayFromHour, 10);
+        if (!isNaN(h) && h >= 10 && h <= 16) delayFromHour = h;
+      } else if (typeof data.isToyotaDelayed === 'boolean') {
+        delayEnabled = data.isToyotaDelayed;
+        delayCorpId = 'C1';
+        delayFromHour = 13;
+      }
+      if (data.theme === 'light' || data.theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', data.theme);
+      }
+    } catch (_) { /* ignore */ }
+  }
+
+  function save() {
+    const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      participants,
+      delayEnabled,
+      delayCorpId,
+      delayFromHour,
+      theme
+    }));
+    flashSaved();
+  }
+
+  let saveTimer;
+  function scheduleSave() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(save, 280);
+  }
+
+  function flashSaved() {
+    els.savedPill.textContent = 'Saved';
+    els.savedPill.style.opacity = '1';
+    clearTimeout(flashSaved._t);
+    flashSaved._t = setTimeout(() => { els.savedPill.style.opacity = '0.65'; }, 800);
+  }
+
+  function toast(msg) {
+    els.toast.textContent = msg;
+    els.toast.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => els.toast.classList.remove('show'), 2200);
+  }
+
+  function hourFromTime(t) {
+    return parseInt(t.split(':')[0], 10);
+  }
+
+  function corpAllowedAt(c, hour) {
+    if (delayEnabled && c.id === delayCorpId && hour < delayFromHour) return false;
+    return true;
+  }
+
+  function populateDelayCorpSelect() {
+    const sel = els.delayCorpId;
+    sel.innerHTML = '';
+    const corps = participants
+      .filter((p) => p.type === 'Corp')
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name));
+    for (const c of corps) {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.name;
+      sel.appendChild(opt);
+    }
+    if (!corps.some((c) => c.id === delayCorpId) && corps.length) {
+      delayCorpId = corps[0].id;
+    }
+  }
+
+  function populateDelayHourSelect() {
+    const sel = els.delayFromHour;
+    sel.innerHTML = '';
+    for (let h = 10; h <= 16; h++) {
+      const opt = document.createElement('option');
+      opt.value = String(h);
+      opt.textContent = (h < 10 ? '0' : '') + h + ':00';
+      sel.appendChild(opt);
+    }
+  }
+
+  function syncDelayControls() {
+    els.delayEnabled.checked = delayEnabled;
+    if ([...els.delayCorpId.options].some((o) => o.value === delayCorpId)) {
+      els.delayCorpId.value = delayCorpId;
+    } else if (els.delayCorpId.options.length) {
+      delayCorpId = els.delayCorpId.options[0].value;
+      els.delayCorpId.value = delayCorpId;
+    }
+    els.delayFromHour.value = String(delayFromHour);
+  }
+
+  function populateExportScope() {
+    const sel = els.exportScope;
+    sel.innerHTML = '';
+    const allOpt = document.createElement('option');
+    allOpt.value = '__ALL__';
+    allOpt.textContent = 'Everyone (full day)';
+    sel.appendChild(allOpt);
+    const ogCorp = document.createElement('optgroup');
+    ogCorp.label = 'Corporates';
+    const ogSu = document.createElement('optgroup');
+    ogSu.label = 'Startups';
+    participants
+      .filter((p) => p.type === 'Corp')
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .forEach((p) => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name;
+        ogCorp.appendChild(opt);
+      });
+    participants
+      .filter((p) => p.type === 'Startup')
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .forEach((p) => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name;
+        ogSu.appendChild(opt);
+      });
+    sel.appendChild(ogCorp);
+    sel.appendChild(ogSu);
+    sel.value = '__ALL__';
+  }
+
+  function getExportFilterPid() {
+    const v = els.exportScope.value;
+    if (!v || v === '__ALL__') return null;
+    return v;
+  }
+
+  function getExportFilterParticipant() {
+    const id = getExportFilterPid();
+    if (!id) return null;
+    return participants.find((p) => p.id === id) || null;
+  }
+
+  function meetingKey(s, c) {
+    return s.id + '|' + c.id;
+  }
+
+  function countStartupMeetings(sched, sid) {
+    let n = 0;
+    for (let hi = 0; hi < sched.length; hi++) {
+      for (let r = 0; r < 2; r++) {
+        const m = sched[hi][r];
+        if (m && m.s.id === sid) n++;
+      }
+    }
+    return n;
+  }
+
+  function startupFlexScore(s, corporates) {
+    let n = 0;
+    for (let hi = 0; hi < TIMES.length; hi++) {
+      const hour = hourFromTime(TIMES[hi]);
+      for (let ci = 0; ci < corporates.length; ci++) {
+        const c = corporates[ci];
+        if (s.sector !== c.sector) continue;
+        if (!corpAllowedAt(c, hour)) continue;
+        n++;
+      }
+    }
+    return n;
+  }
+
+  /**
+   * Phase 1: each startup gets ≥1 meeting when mathematically possible.
+   * Phase 2: fill empty slots; no double-book (same corp or startup in two rooms same hour).
+   */
+  function computeSchedule() {
+    const startups = participants.filter((p) => p.type === 'Startup');
+    const corporates = participants.filter((p) => p.type === 'Corp');
+    const n = TIMES.length;
+    /** @type {Array<Array<{s:any,c:any}|null>>} */
+    const sched = TIMES.map(() => [null, null]);
+    const suHour = TIMES.map(() => new Set());
+    const coHour = TIMES.map(() => new Set());
+    const pairCounts = new Map();
+
+    function place(hi, room, m) {
+      sched[hi][room] = m;
+      suHour[hi].add(m.s.id);
+      coHour[hi].add(m.c.id);
+      const k = meetingKey(m.s, m.c);
+      pairCounts.set(k, (pairCounts.get(k) || 0) + 1);
+    }
+
+    const orderedStartups = startups.slice().sort((a, b) => {
+      const fa = startupFlexScore(a, corporates);
+      const fb = startupFlexScore(b, corporates);
+      if (fa !== fb) return fa - fb;
+      return a.id.localeCompare(b.id);
+    });
+
+    for (const s of orderedStartups) {
+      if (countStartupMeetings(sched, s.id) >= 1) continue;
+      outer: for (let hi = 0; hi < n; hi++) {
+        const hour = hourFromTime(TIMES[hi]);
+        if (suHour[hi].has(s.id)) continue;
+        const corps = corporates.filter((c) => s.sector === c.sector && corpAllowedAt(c, hour) && !coHour[hi].has(c.id));
+        corps.sort((a, b) => a.id.localeCompare(b.id));
+        for (const c of corps) {
+          for (let room = 0; room < 2; room++) {
+            if (sched[hi][room] === null) {
+              place(hi, room, { s: s, c: c });
+              break outer;
+            }
+          }
+        }
+      }
+    }
+
+    for (let hi = 0; hi < n; hi++) {
+      const hour = hourFromTime(TIMES[hi]);
+      for (let room = 0; room < 2; room++) {
+        if (sched[hi][room] !== null) continue;
+        const candidates = [];
+        for (const s of startups) {
+          if (suHour[hi].has(s.id)) continue;
+          for (const c of corporates) {
+            if (s.sector !== c.sector) continue;
+            if (!corpAllowedAt(c, hour)) continue;
+            if (coHour[hi].has(c.id)) continue;
+            candidates.push({ s: s, c: c });
+          }
+        }
+        candidates.sort((a, b) => {
+          const ca = pairCounts.get(meetingKey(a.s, a.c)) || 0;
+          const cb = pairCounts.get(meetingKey(b.s, b.c)) || 0;
+          if (ca !== cb) return ca - cb;
+          return meetingKey(a.s, a.c).localeCompare(meetingKey(b.s, b.c));
+        });
+        if (candidates.length) {
+          place(hi, room, candidates[0]);
+        }
+      }
+    }
+
+    const uncovered = startups
+      .filter((s) => countStartupMeetings(sched, s.id) === 0)
+      .map((s) => s.name);
+
+    const rows = TIMES.map((t, i) => ({
+      time: t,
+      a: sched[i][0],
+      b: sched[i][1]
+    }));
+
+    return { rows: rows, uncovered: uncovered };
+  }
+
+  function renderSectorEditors() {
+    els.sectorEditors.innerHTML = '';
+    const groups = [
+      { label: 'Corporates (5)', list: participants.filter((p) => p.type === 'Corp') },
+      { label: 'Startups (10)', list: participants.filter((p) => p.type === 'Startup') }
+    ];
+    for (const g of groups) {
+      const gl = document.createElement('div');
+      gl.className = 'sector-group-label';
+      gl.textContent = g.label;
+      els.sectorEditors.appendChild(gl);
+      const sorted = g.list.slice().sort((a, b) => a.name.localeCompare(b.name));
+      for (const p of sorted) {
+        const row = document.createElement('div');
+        row.className = 'row-edit';
+        const label = document.createElement('span');
+        label.textContent = p.name;
+        const sel = document.createElement('select');
+        sel.setAttribute('aria-label', 'Business category for ' + p.name);
+        for (const sec of SECTORS) {
+          const opt = document.createElement('option');
+          opt.value = sec;
+          opt.textContent = sec;
+          if (sec === p.sector) opt.selected = true;
+          sel.appendChild(opt);
+        }
+        sel.addEventListener('change', () => {
+          p.sector = sel.value;
+          renderSchedule();
+          scheduleSave();
+        });
+        row.appendChild(label);
+        row.appendChild(sel);
+        els.sectorEditors.appendChild(row);
+      }
+    }
+  }
+
+  function cellHtml(meeting) {
+    if (!meeting) {
+      return '<span class="cell-empty">Open slot</span>';
+    }
+    return (
+      '<div class="meet">' +
+        '<div class="s">' + escapeHtml(meeting.s.name) + '</div>' +
+        '<div class="c">with ' + escapeHtml(meeting.c.name) + '</div>' +
+        '<span class="tag">' + escapeHtml(meeting.s.sector) + '</span>' +
+      '</div>'
+    );
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function slotEndLabel(startTime) {
+    const h = hourFromTime(startTime);
+    const endH = h + 1;
+    const endLabel = (endH < 10 ? '0' : '') + endH + ':00';
+    return startTime + ' – ' + endLabel;
+  }
+
+  function fmtMeeting(m) {
+    if (!m) return '—';
+    return m.s.name + ' with ' + m.c.name + ' (' + m.s.sector + ')';
+  }
+
+  function renderPrintHandout(plan) {
+    const filter = getExportFilterParticipant();
+    const filterId = getExportFilterPid();
+    const lines = [];
+    let delayMeta = '';
+    if (delayEnabled) {
+      const dc = participants.find((p) => p.id === delayCorpId && p.type === 'Corp');
+      const nm = escapeHtml(dc ? dc.name : delayCorpId);
+      const hh = delayFromHour < 10 ? '0' + delayFromHour : String(delayFromHour);
+      delayMeta = ' · ' + nm + ' delayed: meetings from ' + hh + ':00 onward';
+    }
+
+    if (filter) {
+      lines.push('<h1>Intralink GTM Launchpad — ' + escapeHtml(filter.name) + '</h1>');
+      lines.push(
+        '<p class="meta">' +
+          'Your meetings only · Six one-hour slots, 10:00–16:00 · ' +
+          (filter.type === 'Corp' ? 'Corporate' : 'Startup') +
+          delayMeta +
+          '</p>'
+      );
+      lines.push('<ol>');
+      let n = 0;
+      for (const r of plan.rows) {
+        const slot = slotEndLabel(r.time);
+        let m = null;
+        let room = '';
+        if (r.a && (r.a.s.id === filterId || r.a.c.id === filterId)) {
+          m = r.a;
+          room = 'Room A';
+        } else if (r.b && (r.b.s.id === filterId || r.b.c.id === filterId)) {
+          m = r.b;
+          room = 'Room B';
+        }
+        if (m) {
+          n++;
+          const partner = m.s.id === filterId ? m.c.name : m.s.name;
+          lines.push(
+            '<li><span class="ph-time">' + escapeHtml(slot) + '</span><br>' +
+              '<span class="ph-room">' + escapeHtml(room) + '</span> · With <strong>' +
+              escapeHtml(partner) + '</strong> · ' + escapeHtml(m.s.sector) +
+              '</li>'
+          );
+        }
+      }
+      lines.push('</ol>');
+      if (n === 0) {
+        lines.push('<p class="meta">No meetings for this company in the current schedule.</p>');
+      }
+      if (filter.type === 'Startup' && plan.uncovered.indexOf(filter.name) !== -1) {
+        lines.push(
+          '<p class="meta"><strong>Note:</strong> This startup has no assigned meeting in the grid — check sector tags.</p>'
+        );
+      }
+    } else {
+      const nStartup = participants.filter((p) => p.type === 'Startup').length;
+      lines.push('<h1>Intralink GTM Launchpad — corrected schedule</h1>');
+      lines.push(
+        '<p class="meta">' +
+          'Six one-hour slots, 10:00–16:00 · Rooms A &amp; B · ' +
+          nStartup +
+          ' startups, 5 corporates' +
+          delayMeta +
+          '</p>'
+      );
+      lines.push('<ol>');
+      for (const r of plan.rows) {
+        const slot = slotEndLabel(r.time);
+        const a = r.a ? '<span class="ph-room">Room A:</span> ' + escapeHtml(r.a.s.name) + ' / ' + escapeHtml(r.a.c.name) + ' (' + escapeHtml(r.a.s.sector) + ')' : '<span class="ph-room">Room A:</span> Open';
+        const b = r.b ? '<span class="ph-room">Room B:</span> ' + escapeHtml(r.b.s.name) + ' / ' + escapeHtml(r.b.c.name) + ' (' + escapeHtml(r.b.s.sector) + ')' : '<span class="ph-room">Room B:</span> Open';
+        lines.push(
+          '<li><span class="ph-time">' + escapeHtml(slot) + '</span><br>' + a + '<br>' + b + '</li>'
+        );
+      }
+      lines.push('</ol>');
+      if (plan.uncovered.length) {
+        lines.push(
+          '<p class="meta"><strong>Note:</strong> No slot could be found for: ' +
+            plan.uncovered.map(escapeHtml).join(', ') +
+            ' — adjust categories so each startup shares a sector with at least one corporate.</p>'
+        );
+      }
+    }
+    els.printHandout.innerHTML = lines.join('');
+  }
+
+  function renderSchedule() {
+    const plan = computeSchedule();
+    lastPlan = plan;
+    if (plan.uncovered.length) {
+      els.covWarn.hidden = false;
+      els.covWarn.textContent =
+        'These startups still have zero meetings (wrong category or no matching corporate): ' +
+        plan.uncovered.join(', ') +
+        '.';
+    } else {
+      els.covWarn.hidden = true;
+      els.covWarn.textContent = '';
+    }
+    els.genStamp.textContent = 'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    const frag = document.createDocumentFragment();
+    for (const r of plan.rows) {
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<th scope="row" class="time">' + escapeHtml(r.time) + '</th>' +
+        '<td class="slot">' + cellHtml(r.a) + '</td>' +
+        '<td class="slot">' + cellHtml(r.b) + '</td>';
+      frag.appendChild(tr);
+    }
+    els.scheduleBody.replaceChildren(frag);
+    renderPrintHandout(plan);
+  }
+
+  function scheduleToTSV() {
+    const plan = lastPlan || computeSchedule();
+    const pid = getExportFilterPid();
+    if (!pid) {
+      const lines = ['Time slot\tRoom A\tRoom B'];
+      for (const r of plan.rows) {
+        lines.push([slotEndLabel(r.time), fmtMeeting(r.a), fmtMeeting(r.b)].join('\t'));
+      }
+      return lines.join('\n');
+    }
+    const lines = ['Time\tRoom\tPartner\tSector'];
+    for (const r of plan.rows) {
+      const slot = slotEndLabel(r.time);
+      let m = null;
+      let room = '';
+      if (r.a && (r.a.s.id === pid || r.a.c.id === pid)) {
+        m = r.a;
+        room = 'Room A';
+      } else if (r.b && (r.b.s.id === pid || r.b.c.id === pid)) {
+        m = r.b;
+        room = 'Room B';
+      }
+      if (m) {
+        const partner = m.s.id === pid ? m.c.name : m.s.name;
+        lines.push([slot, room, partner, m.s.sector].join('\t'));
+      }
+    }
+    if (lines.length === 1) {
+      lines.push('(no meetings in this plan)\t\t\t');
+    }
+    return lines.join('\n');
+  }
+
+  els.delayEnabled.addEventListener('change', () => {
+    delayEnabled = els.delayEnabled.checked;
+    renderSchedule();
+    scheduleSave();
+  });
+  els.delayCorpId.addEventListener('change', () => {
+    delayCorpId = els.delayCorpId.value;
+    renderSchedule();
+    scheduleSave();
+  });
+  els.delayFromHour.addEventListener('change', () => {
+    delayFromHour = parseInt(els.delayFromHour.value, 10) || 13;
+    renderSchedule();
+    scheduleSave();
+  });
+
+  els.btnPrint.addEventListener('click', () => window.print());
+
+  els.exportScope.addEventListener('change', () => {
+    if (lastPlan) renderPrintHandout(lastPlan);
+    scheduleSave();
+  });
+
+  els.btnCopy.addEventListener('click', async () => {
+    const tsv = scheduleToTSV();
+    try {
+      await navigator.clipboard.writeText(tsv);
+      toast(getExportFilterPid() ? 'Copied TSV for selected company' : 'Schedule copied as TSV');
+    } catch (_) {
+      toast('Copy blocked — select and copy manually');
+    }
+  });
+
+  els.btnTheme.addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    scheduleSave();
+  });
+
+  if (!document.documentElement.hasAttribute('data-theme')) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+
+  populateDelayHourSelect();
+  load();
+  populateExportScope();
+  populateDelayCorpSelect();
+  syncDelayControls();
+  renderSectorEditors();
+  renderSchedule();
+  scheduleSave();
+})();
+  </script>
+</body>
+</html>
