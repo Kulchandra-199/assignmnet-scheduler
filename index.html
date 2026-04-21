@@ -7,11 +7,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Intralink GTM Launchpad — dynamic bilateral meeting scheduler: CSV/JSON/XLSX roster, configurable slots and tables, sector rules, pinned pairings, optional corporate delay, export.">
   <title>Intralink GTM Launchpad Scheduler</title>
+  <link rel="icon" type="image/png" href="https://www.intralinkgroup.com/hubfs/Intralink-ICON.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.5/dist/driver.css">
+  <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.5/dist/driver.js.iife.js"></script>
+  <script src="https://js.puter.com/v2/"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -30,15 +34,16 @@
     :root {
       --font-display: "Poppins", system-ui, sans-serif;
       --font-ui: "Poppins", system-ui, sans-serif;
-      /* Intralink site reference: #0089D0, #002D54, #204191, #17B9D1, #853683, #7B3F8D */
-      --brand: #0089d0;
+      /* Extracted from live intralinkgroup.com CSS */
+      --brand: #008fdc;
       --ink: #002d54;
-      --navy: #204191;
-      --teal: #17b9d1;
-      --plum: #853683;
+      --navy: #1c3f88;
+      --teal: #19b9d0;
+      --plum: #8a3a8d;
       --amethyst: #7b3f8d;
-      --bg0: #eceef1;
-      --bg1: #f4f5f7;
+      --coral: #e9426c;
+      --bg0: #56b6cd;
+      --bg1: #6ec4d8;
       --surface: #ffffff;
       --surface2: #f0f1f4;
       --border: rgba(0, 45, 84, 0.12);
@@ -95,52 +100,36 @@
       gap: 0.85rem;
       padding: 0.95rem 1.15rem;
       border-radius: var(--radius);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      background:
-        radial-gradient(120% 140% at 0% 0%, rgba(23, 185, 209, 0.35) 0%, rgba(23, 185, 209, 0) 55%),
-        radial-gradient(90% 120% at 100% 100%, rgba(32, 65, 145, 0.55) 0%, rgba(32, 65, 145, 0) 60%),
-        linear-gradient(135deg, #0089d0 0%, #0771ae 55%, #204191 100%);
-      box-shadow:
-        0 22px 48px rgba(15, 23, 42, 0.18),
-        inset 0 1px 0 rgba(255, 255, 255, 0.22);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: var(--shadow);
       overflow: hidden;
-    }
-
-    .app-header-surface::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 35%);
-      border-radius: inherit;
     }
 
     .app-header-surface > * { position: relative; z-index: 1; }
 
     .app-header-surface .brand-wordmark {
-      color: #fff;
+      color: var(--ink);
     }
 
     .app-header-surface .brand-eyebrow {
-      color: rgba(255, 255, 255, 0.82);
+      color: var(--brand);
     }
 
     .app-header-surface .brand-tagline {
-      color: rgba(255, 255, 255, 0.68);
+      color: var(--muted);
     }
 
     .app-header-surface .header-actions {
-      background: rgba(0, 45, 84, 0.22);
-      border-color: rgba(255, 255, 255, 0.32);
+      background: var(--surface2);
+      border: 1px solid var(--border);
       gap: 0.6rem 1rem;
       row-gap: 0.5rem;
       padding: 0.55rem 0.75rem 0.55rem 0.85rem;
       align-items: center;
       align-content: center;
-      /* Let the bar shrink inside the header row so the brand never clips (flex min-width:auto). */
       min-width: 0;
       max-width: 100%;
-      /* Wrapped rows read correctly; full pill + wrap often looks “cut off”. */
       border-radius: var(--radius);
       overflow: visible;
     }
@@ -229,24 +218,19 @@
 
     .brand-mark {
       flex-shrink: 0;
-      width: 2.4rem;
-      height: 2.4rem;
+      width: 3.2rem;
+      height: 3.2rem;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       border-radius: 12px;
-      background: rgba(255, 255, 255, 0.14);
-      border: 1px solid rgba(255, 255, 255, 0.28);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.3),
-        0 6px 14px rgba(0, 45, 84, 0.22);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
+      overflow: hidden;
     }
 
-    .brand-mark svg {
-      width: 1.6rem;
-      height: 1.6rem;
+    .brand-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
       display: block;
     }
 
@@ -273,6 +257,7 @@
       font-weight: 700;
       letter-spacing: -0.025em;
       line-height: 1.15;
+      white-space: nowrap;
     }
 
     .brand-tagline {
@@ -283,8 +268,7 @@
 
     @media (max-width: 420px) {
       .brand-tagline { display: none; }
-      .brand-mark { width: 2.15rem; height: 2.15rem; }
-      .brand-mark svg { width: 1.4rem; height: 1.4rem; }
+      .brand-mark { width: 2.4rem; height: 2.4rem; }
     }
 
     .panel-head-calendar {
@@ -315,7 +299,7 @@
       max-width: 100%;
       border-radius: 999px;
       background: var(--surface2);
-      border: 1px solid var(--border);
+      border: none;
       align-self: stretch;
     }
 
@@ -364,9 +348,9 @@
       width: 1.65rem;
       height: 1.65rem;
       border-radius: 999px;
-      color: #fff;
-      background: rgba(255, 255, 255, 0.14);
-      border: 1px solid rgba(255, 255, 255, 0.28);
+      color: var(--ink);
+      background: var(--surface2);
+      border: 1px solid var(--border);
       flex-shrink: 0;
     }
 
@@ -388,7 +372,7 @@
     }
 
     .app-header-surface .header-event-strip .header-event-delete {
-      color: rgba(255, 255, 255, 0.92);
+      color: var(--text);
       gap: 0;
       padding: 0.35rem;
       width: 2.1rem;
@@ -399,7 +383,7 @@
     }
 
     .app-header-surface .header-event-strip .header-event-delete svg {
-      opacity: 0.9;
+      opacity: 1;
     }
 
     .app-header-surface .header-event-strip .header-event-delete:not(:disabled):hover {
@@ -913,8 +897,13 @@
     .toast {
       position: fixed;
       bottom: 1.25rem;
-      left: 50%;
-      transform: translateX(-50%) translateY(120%);
+      left: 0;
+      right: 0;
+      margin-left: auto;
+      margin-right: auto;
+      width: max-content;
+      max-width: min(36rem, calc(100vw - 2rem));
+      transform: translateY(calc(100% + 2rem));
       background: var(--surface2);
       color: var(--text);
       border: 1px solid var(--border);
@@ -922,14 +911,14 @@
       border-radius: 999px;
       font-size: 0.8125rem;
       box-shadow: var(--shadow);
-      z-index: 300;
+      z-index: 10050;
       opacity: 0;
       transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s;
       pointer-events: none;
     }
 
     .toast.show {
-      transform: translateX(-50%) translateY(0);
+      transform: translateY(0);
       opacity: 1;
     }
 
@@ -1033,6 +1022,16 @@
       -webkit-overflow-scrolling: touch;
     }
 
+    /* Tour: keep Pinned section readable above the modal footer when Driver scrolls it into view */
+    body.driver-active #tourStepPins {
+      scroll-margin-bottom: 6rem;
+      scroll-margin-top: 0.75rem;
+    }
+
+    body.driver-active .settings-modal-scroll {
+      padding-bottom: 2.25rem;
+    }
+
     .settings-modal-scroll .sector-scroll {
       max-height: min(38vh, 16rem);
     }
@@ -1054,10 +1053,20 @@
       font-size: 0.75rem;
       color: var(--muted);
       max-width: 18rem;
+      flex: 1 1 12rem;
+      min-width: 0;
     }
 
     .settings-modal-foot #btnClearData {
       margin-right: auto;
+    }
+
+    .settings-modal-foot-actions {
+      display: inline-flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
     }
 
     .btn-ghost.btn-danger {
@@ -1123,6 +1132,207 @@
       .print-handout .ph-time { font-weight: 700; }
       .print-handout .ph-room { color: #333; }
       .tw-shell { max-width: none !important; padding: 0 !important; }
+      .driver-overlay,
+      .driver-popover,
+      body.driver-active .driver-overlay {
+        display: none !important;
+      }
+    }
+
+    /* Driver.js tour: modal-style card + app-matched controls */
+    .driver-popover-gtm,
+    .driver-popover-gtm * {
+      font-family: var(--font-ui), ui-sans-serif, system-ui, sans-serif !important;
+    }
+
+    /* Do not set position here — Driver.js uses position:fixed + inline coords on .driver-popover. */
+    .driver-popover-gtm {
+      color: var(--text);
+      border-radius: var(--radius);
+      border: 1px solid rgba(0, 45, 84, 0.12);
+      background: var(--surface);
+      max-width: min(24rem, calc(100vw - 2rem));
+      padding: 0;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.65) inset,
+        0 2px 4px rgba(15, 23, 42, 0.04),
+        0 28px 72px rgba(15, 23, 42, 0.16);
+    }
+
+    .driver-popover-gtm::before {
+      content: "";
+      display: block;
+      height: 3px;
+      background: linear-gradient(90deg, var(--brand) 0%, var(--navy) 55%, var(--teal) 100%);
+    }
+
+    .driver-popover-gtm .driver-popover-title {
+      font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif !important;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      line-height: 1.35;
+      margin: 0;
+      padding: 1rem 2.85rem 0.65rem 1.15rem;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .driver-popover-gtm .driver-popover-description {
+      font-family: var(--font-ui);
+      font-size: 0.8125rem;
+      font-weight: 400;
+      line-height: 1.6;
+      color: var(--muted);
+      margin: 0;
+      padding: 0.9rem 1.15rem 1rem;
+    }
+
+    .driver-popover-gtm .driver-popover-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.65rem 0.75rem;
+      margin: 0;
+      padding: 0.85rem 1.1rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface2);
+    }
+
+    .driver-popover-gtm .driver-popover-progress-text {
+      font-family: var(--font-ui);
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      background: rgba(0, 45, 84, 0.06);
+      border: 1px solid rgba(0, 45, 84, 0.08);
+    }
+
+    .driver-popover-gtm .driver-popover-navigation-btns {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .driver-popover-gtm .driver-popover-prev-btn,
+    .driver-popover-gtm .driver-popover-next-btn {
+      font-family: var(--font-ui);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      line-height: 1.25;
+      border-radius: 999px;
+      min-height: 2.5rem;
+      padding: 0.55rem 1.25rem;
+      margin: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+      transition: background 0.15s, border-color 0.15s, filter 0.15s, transform 0.12s, box-shadow 0.15s;
+      border: 1px solid var(--btn-ghost-border);
+      background: var(--btn-ghost-bg);
+      color: var(--ink);
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+    }
+
+    .driver-popover-gtm .driver-popover-prev-btn:hover,
+    .driver-popover-gtm .driver-popover-next-btn:hover {
+      background: var(--btn-ghost-hover-bg);
+      border-color: var(--btn-ghost-hover-border);
+    }
+
+    .driver-popover-gtm .driver-popover-prev-btn:active,
+    .driver-popover-gtm .driver-popover-next-btn:active {
+      transform: scale(0.98);
+    }
+
+    .driver-popover-gtm .driver-popover-prev-btn:focus-visible,
+    .driver-popover-gtm .driver-popover-next-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .driver-popover-gtm .driver-popover-next-btn {
+      background: linear-gradient(180deg, #1ac2db 0%, var(--teal) 55%, #0f9eb4 100%);
+      border-color: rgba(0, 45, 84, 0.12);
+      color: #fff;
+      box-shadow:
+        0 1px 2px rgba(0, 45, 84, 0.18),
+        0 6px 16px rgba(10, 122, 152, 0.22);
+    }
+
+    .driver-popover-gtm .driver-popover-next-btn:hover {
+      filter: brightness(1.06);
+      border-color: rgba(0, 45, 84, 0.14);
+      box-shadow:
+        0 1px 2px rgba(0, 45, 84, 0.2),
+        0 8px 20px rgba(10, 122, 152, 0.3);
+    }
+
+    .driver-popover-gtm .driver-popover-next-btn.driver-popover-btn-disabled,
+    .driver-popover-gtm .driver-popover-prev-btn.driver-popover-btn-disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+      filter: none;
+    }
+
+    .driver-popover-gtm .driver-popover-close-btn {
+      position: absolute;
+      top: calc(0.55rem + 3px);
+      right: 0.55rem;
+      z-index: 2;
+      width: 2.25rem;
+      height: 2.25rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-ui);
+      font-size: 1.15rem;
+      line-height: 1;
+      color: var(--muted);
+      border-radius: 999px;
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .driver-popover-gtm .driver-popover-close-btn:hover {
+      color: var(--ink);
+      background: rgba(0, 45, 84, 0.06);
+      border-color: rgba(0, 45, 84, 0.1);
+    }
+
+    .driver-popover-gtm .driver-popover-close-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* Pointer arrow (Driver uses border triangles; one edge stays colored) */
+    .driver-popover-gtm .driver-popover-arrow-side-left {
+      border-left-color: var(--surface) !important;
+    }
+
+    .driver-popover-gtm .driver-popover-arrow-side-right {
+      border-right-color: var(--surface) !important;
+    }
+
+    .driver-popover-gtm .driver-popover-arrow-side-top {
+      border-top-color: var(--surface) !important;
+    }
+
+    .driver-popover-gtm .driver-popover-arrow-side-bottom {
+      border-bottom-color: var(--surface) !important;
     }
   </style>
 </head>
@@ -1134,11 +1344,7 @@
       <div class="app-header-surface">
         <div class="brand">
           <span class="brand-mark" aria-hidden="true">
-            <svg viewBox="0 0 36 36" focusable="false" xmlns="http://www.w3.org/2000/svg">
-              <rect x="3" y="7" width="20" height="20" rx="5.5" fill="#17b9d1" fill-opacity="0.95"/>
-              <rect x="13" y="11" width="20" height="20" rx="5.5" fill="#ffffff" fill-opacity="0.96"/>
-              <circle cx="18" cy="17" r="1.7" fill="#0089d0"/>
-            </svg>
+            <img src="https://i.ibb.co/zhdYSz4g/image.png" alt="Intralink logo" width="38" height="38">
           </span>
           <div class="brand-copy">
             <span class="brand-eyebrow">Intralink</span>
@@ -1166,6 +1372,9 @@
               </button>
             </div>
           </div>
+          <button type="button" class="btn-ghost header-event-btn" id="btnAppTour" aria-label="Start guided tour">
+            <span>Tour</span>
+          </button>
           <button type="button" class="btn-primary js-open-settings" id="btnOpenSettings">
             <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="M10.75 2.5l2.75 2.75L5.5 13.25H2.75V10.5L10.75 2.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/></svg>
             <span>Edit event &amp; roster</span>
@@ -1176,7 +1385,7 @@
 
     <!-- Main stack: live schedule table + warnings below -->
     <div class="grid grid-cols-1 gap-4">
-      <section class="panel panel-lg no-print">
+      <section class="panel panel-lg no-print" id="tourCalendarPanel">
         <div class="panel-head panel-head-calendar">
           <div class="panel-head-calendar-main">
             <h2 id="scheduleTitle">Working calendar</h2>
@@ -1218,6 +1427,28 @@
 
   <div class="toast no-print" id="toast" role="status"></div>
 
+  <!-- === AI assistant (Puter): FAB + panel === -->
+  <div class="ai-chat no-print" id="aiChatRoot">
+    <button type="button" class="ai-chat-fab" id="aiChatFab" aria-label="Open Intralink assistant" aria-expanded="false" aria-controls="aiChatPanel">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 3C7.03 3 3 6.58 3 11c0 2.6 1.4 4.9 3.5 6.3-.1.9-.4 2.4-.5 2.8-.1.4.1.8.5.9.3.1.6 0 .8-.2.9-.8 2.1-1.9 3-2.6.6.1 1.2.2 1.9.2 4.97 0 9-3.58 9-8s-4.03-8-9-8z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+    </button>
+    <div id="aiChatPanel" class="ai-chat-panel is-hidden" role="dialog" aria-modal="false" aria-labelledby="aiChatTitle" aria-hidden="true">
+      <div class="ai-chat-head">
+        <h3 id="aiChatTitle">Intralink assistant</h3>
+        <div class="ai-chat-head-actions">
+          <button type="button" class="btn-ghost" id="aiChatClear">Clear</button>
+          <button type="button" class="btn-ghost" id="aiChatClose" aria-label="Close Intralink assistant">✕</button>
+        </div>
+      </div>
+      <div id="aiChatMessages" class="ai-chat-messages" aria-live="polite"></div>
+      <div class="ai-chat-input-row">
+        <label class="sr-only" for="aiChatInput">Message to Intralink assistant</label>
+        <textarea id="aiChatInput" rows="1" placeholder="Ask about the schedule or roster…" autocomplete="off"></textarea>
+        <button type="button" class="btn-primary" id="aiChatSend">Send</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: day/slots/rooms, roster, sectors, pins, delay, generate -->
   <div id="settingsModal" class="settings-modal is-hidden no-print" aria-hidden="true">
     <div class="settings-modal-backdrop" id="settingsModalBackdrop" aria-hidden="true"></div>
@@ -1230,7 +1461,7 @@
         <div id="settingsScroll" class="settings-modal-scroll">
           <!-- Editor steps (order matches user flow): event → roster → sectors → pins → delay → rules -->
           <!-- Step: day window, slot length, parallel rooms -->
-          <div class="step">
+          <div class="step" id="tourStepEventSetup">
             <h3>Event setup</h3>
             <p class="hint">Day window, meeting length, and how many meetings can run at once (rooms / tables). Max 24 time slots × 20 rooms.</p>
             <div style="margin-top:0.85rem;">
@@ -1259,7 +1490,7 @@
           </div>
 
           <!-- Step: CSV / JSON / XLSX upload -->
-          <div class="step">
+          <div class="step" id="tourStepRoster">
             <h3>Roster</h3>
             <p class="hint">CSV, JSON, or Excel (<code>.xlsx</code> / <code>.xls</code>): first sheet, columns <code>name</code>, <code>type</code> (Corp or Startup), <code>sector</code>. Max 20 per side. JSON or Excel may include optional <code>id</code> per row.</p>
             <div class="flex flex-wrap gap-2 mt-2">
@@ -1274,7 +1505,7 @@
           </div>
 
           <!-- Step: participant list (rename, re-sector, add, remove) -->
-          <div class="step">
+          <div class="step" id="tourStepParticipants">
             <h3>Participants</h3>
             <p class="hint">Rename, re-sector, add, or remove corporates and startups. Use <strong>Generate schedule</strong> below to refresh the grid.</p>
             <div class="sector-scroll" id="sectorEditors"></div>
@@ -1285,7 +1516,7 @@
           </div>
 
           <!-- Step: forced corp–startup pairs -->
-          <div class="step">
+          <div class="step" id="tourStepPins">
             <h3>Pinned meetings <span class="text-[var(--muted)] font-normal">(human in the loop)</span></h3>
             <p class="hint">Lock in who meets whom (e.g. <strong>Toyota Next</strong> with <strong>QuickCharge</strong>). You only pick the pair; <strong>time and room are assigned</strong> by the tool. Other empty slots are filled as usual. Pinned pairs must share a sector.</p>
             <div id="pinnedRows" class="flex flex-col gap-2 mt-2"></div>
@@ -1293,7 +1524,7 @@
           </div>
 
           <!-- Step: optional corporate late start -->
-          <div class="step">
+          <div class="step" id="tourStepDelay">
             <h3>Time management · Corporate delay</h3>
             <p class="hint">Pick a corporate and the <strong>earliest clock time</strong> their meetings may <em>start</em> (compared to each slot’s start). Until then they are blocked.</p>
             <div class="delay-panel">
@@ -1311,17 +1542,19 @@
           </div>
 
           <!-- Collapsible scheduling rules copy -->
-          <details class="help">
+          <details class="help" id="tourOfficialRules">
             <summary>Official rules</summary>
             <p style="margin:0.5rem 0 0;"><strong>Sector match:</strong> startups only meet corporates in the same sector. <strong>No collisions:</strong> the same corporate or startup cannot appear in two tables in the same time slot. <strong>Capacity:</strong> each startup gets at least one meeting in an open slot when the sector graph allows it. <strong>Pinned pairs</strong> are placed first. <strong>Corporate delay:</strong> optionally block one corporate before a chosen time.</p>
           </details>
         </div>
       </div>
-      <div class="settings-modal-foot">
+      <div class="settings-modal-foot" id="tourModalFoot">
         <button type="button" class="btn-ghost btn-danger" id="btnClearData" title="Remove all other events and reset the template event to its defaults">Clear all data</button>
         <p class="hint">Changes save in the background; the calendar updates when you generate.</p>
-        <button type="button" class="btn-ghost" id="btnSettingsCancel">Close</button>
-        <button type="button" class="btn-primary" id="btnGenerateSchedule">Generate schedule</button>
+        <div class="settings-modal-foot-actions">
+          <button type="button" class="btn-ghost" id="btnSettingsCancel">Close</button>
+          <button type="button" class="btn-primary" id="btnGenerateSchedule">Generate schedule</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1379,17 +1612,21 @@
       outline-offset: 2px;
     }
 
+    /* Same specificity as the shared `button[type="button"].…` block so accent wins over default surface */
+    button[type="button"].btn-primary,
     .btn-primary {
       background: var(--accent);
       border-color: transparent;
       color: #fff;
     }
 
+    button[type="button"].btn-primary:hover,
     .btn-primary:hover {
       filter: brightness(1.06);
       border-color: transparent;
     }
 
+    button[type="button"].btn-ghost,
     .btn-ghost {
       background: var(--btn-ghost-bg);
       border-color: var(--btn-ghost-border);
@@ -1432,6 +1669,213 @@
       border-color: rgba(0, 45, 84, 0.14);
       box-shadow: 0 1px 2px rgba(0, 45, 84, 0.22), 0 10px 22px rgba(10, 122, 152, 0.34);
     }
+
+    /* --- AI assistant popover (Puter) --- */
+    .ai-chat {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 180;
+      font-family: var(--font-ui);
+      pointer-events: none;
+    }
+
+    .ai-chat * {
+      pointer-events: auto;
+    }
+
+    .ai-chat-fab {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      width: 3.25rem;
+      height: 3.25rem;
+      border-radius: 999px;
+      border: 1px solid var(--btn-ghost-border);
+      background: linear-gradient(180deg, #1ac2db 0%, var(--teal) 55%, #0f9eb4 100%);
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.8125rem;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+    .ai-chat-fab:hover {
+      filter: brightness(1.05);
+      transform: translateY(-1px);
+    }
+
+    .ai-chat-fab:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .ai-chat-panel {
+      position: absolute;
+      right: 0;
+      bottom: calc(3.25rem + 0.75rem);
+      width: min(100vw - 2rem, 22rem);
+      max-height: min(70dvh, 28rem);
+      display: flex;
+      flex-direction: column;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .ai-chat-panel.is-hidden {
+      display: none;
+    }
+
+    .ai-chat-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.65rem 0.85rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+
+    .ai-chat-head h3 {
+      margin: 0;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .ai-chat-head-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .ai-chat-head .btn-ghost {
+      padding: 0.35rem 0.5rem;
+      font-size: 0.75rem;
+    }
+
+    .ai-chat-messages {
+      flex: 1;
+      min-height: 10rem;
+      overflow-y: auto;
+      padding: 0.65rem 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      font-size: 0.8125rem;
+      line-height: 1.45;
+      color: var(--text);
+    }
+
+    .ai-chat-msg {
+      padding: 0.45rem 0.55rem;
+      border-radius: var(--radius-sm);
+      max-width: 100%;
+      word-break: break-word;
+    }
+
+    .ai-chat-msg.user {
+      align-self: flex-end;
+      background: rgba(0, 137, 208, 0.12);
+      border: 1px solid rgba(0, 137, 208, 0.2);
+      white-space: pre-wrap;
+    }
+
+    .ai-chat-msg.assistant {
+      align-self: flex-start;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 0.55rem 0.7rem;
+    }
+
+    .ai-chat-msg.assistant .ai-msg-body {
+      width: 100%;
+    }
+
+    .ai-chat-msg.assistant .ai-md-p {
+      margin: 0 0 0.55rem;
+      line-height: 1.5;
+    }
+
+    .ai-chat-msg.assistant .ai-md-p:last-child {
+      margin-bottom: 0;
+    }
+
+    .ai-chat-msg.assistant .ai-md-ul {
+      margin: 0 0 0.55rem;
+      padding-left: 1.15rem;
+      list-style-type: disc;
+    }
+
+    .ai-chat-msg.assistant .ai-md-ul:last-child {
+      margin-bottom: 0;
+    }
+
+    .ai-chat-msg.assistant .ai-md-ul li {
+      margin: 0.15rem 0;
+      padding-left: 0.15rem;
+    }
+
+    .ai-chat-msg.assistant .ai-md-ul li::marker {
+      color: var(--muted);
+    }
+
+    .ai-chat-msg.system-line {
+      align-self: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      background: transparent;
+      border: none;
+    }
+
+    .ai-chat-input-row {
+      display: flex;
+      align-items: stretch;
+      gap: 0.45rem;
+      padding: 0.5rem 0.85rem 0.65rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .ai-chat-input-row textarea {
+      flex: 1;
+      min-height: 2.75rem;
+      max-height: 6rem;
+      resize: vertical;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.6rem;
+      font: inherit;
+      font-size: 0.8125rem;
+      line-height: 1.45;
+      color: var(--text);
+      background: #fff;
+      box-sizing: border-box;
+    }
+
+    .ai-chat-input-row textarea:focus {
+      outline: 2px solid rgba(0, 137, 208, 0.35);
+      outline-offset: 0;
+    }
+
+    .ai-chat-input-row .btn-primary {
+      flex-shrink: 0;
+      min-width: 4.25rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      align-self: stretch;
+      padding: 0.5rem 0.95rem;
+      font-size: 0.8125rem;
+      line-height: 1.25;
+      box-sizing: border-box;
+    }
+
   </style>
 
   <!-- === SCRIPT: scheduler UI + persistence (single IIFE) === -->
@@ -1453,10 +1897,7 @@
    */
   const DEFAULT_EVENT_ID = '__default__';
 
-  /**
-   * Demo seed / fresh default roster — kept in sync with `Participants (1).xlsx`
-   * (sheet1: id, name, sector, type).
-   */
+  /** Demo seed / fresh default roster (5 corporates × 10 startups; columns: id, name, sector, type). */
   const DEFAULT_PARTICIPANTS = [
     { id: 'C1', name: 'Toyota Next', sector: 'Automotive', type: 'Corp' },
     { id: 'C2', name: 'Panasonic Energy', sector: 'Electronics', type: 'Corp' },
@@ -1499,6 +1940,8 @@
   /** @type {{ rows: Array<{ time: string, cells: Array<any> }>, uncovered: string[], pinFailures: string[] } | null} */
   let lastPlan = null;
   let settingsModalOpen = false;
+  /** True while Driver.js tour is active (coordinates Escape vs. modal close). */
+  let tourActive = false;
   /** True when the editor has changes not yet reflected in the calendar (modal open). */
   let scheduleStale = false;
   /**
@@ -1547,7 +1990,16 @@
     eventSelect: document.getElementById('eventSelect'),
     btnEventNew: document.getElementById('btnEventNew'),
     btnEventDelete: document.getElementById('btnEventDelete'),
-    btnClearData: document.getElementById('btnClearData')
+    btnClearData: document.getElementById('btnClearData'),
+    btnAppTour: document.getElementById('btnAppTour'),
+    aiChatFab: document.getElementById('aiChatFab'),
+    aiChatPanel: document.getElementById('aiChatPanel'),
+    aiChatRoot: document.getElementById('aiChatRoot'),
+    aiChatMessages: document.getElementById('aiChatMessages'),
+    aiChatInput: document.getElementById('aiChatInput'),
+    aiChatSend: document.getElementById('aiChatSend'),
+    aiChatClear: document.getElementById('aiChatClear'),
+    aiChatClose: document.getElementById('aiChatClose')
   };
 
   // --- Settings modal: open/close, stale flag, generate from editor ---
@@ -1703,8 +2155,8 @@
   }
 
   function readEventFromDom() {
-    eventConfig.dayStart = els.dayStart.value || '09:00';
-    eventConfig.dayEnd = els.dayEnd.value || '17:00';
+    eventConfig.dayStart = els.dayStart.value || '10:00';
+    eventConfig.dayEnd = els.dayEnd.value || '16:00';
     eventConfig.slotMinutes = parseInt(els.slotMinutes.value, 10) || 60;
     eventConfig.tableCount = Math.min(MAX_TABLES, Math.max(1, parseInt(els.tableCount.value, 10) || 1));
     const idx = events.findIndex((e) => e.id === activeEventId);
@@ -2088,6 +2540,35 @@
     openSettingsModal({ focus: 'eventName' });
   }
 
+  /**
+   * Create a new saved event without opening the editor (for AI tools). Persists immediately.
+   * @param {string} [name]
+   */
+  function createEventFromAssistant(name) {
+    if (!prepareForEventListEdit()) return { ok: false, error: 'Cannot create event (editor open or invalid roster).' };
+    const id = newEventId();
+    const label =
+      typeof name === 'string' && name.trim() ? name.trim() : 'Event ' + (events.length + 1);
+    const rec = blankEventRecord(id, label);
+    events.push(rec);
+    activeEventId = id;
+    pendingNewEventCtx = null;
+    applySnapshotToGlobals(rec);
+    applyEventToDom();
+    showRosterErr('');
+    prunePins();
+    populateDelayCorpSelect();
+    populateExportScope();
+    syncDelayControls();
+    renderSectorEditors();
+    renderPinnedEditors();
+    renderSchedule();
+    renderEventSelect();
+    flushActiveEventIntoEvents();
+    save();
+    return { ok: true, eventId: id, name: label };
+  }
+
   function deleteActiveEventFromUi() {
     if (isDefaultEventId(activeEventId)) {
       toast('The template event cannot be deleted.');
@@ -2239,11 +2720,264 @@
   }
 
   // --- Ephemeral UI: toast + roster file error line ---
-  function toast(msg) {
+  function toast(msg, durationMs) {
     els.toast.textContent = msg;
     els.toast.classList.add('show');
     clearTimeout(toast._t);
-    toast._t = setTimeout(() => els.toast.classList.remove('show'), 2200);
+    const ms = durationMs == null ? 2200 : durationMs;
+    toast._t = setTimeout(() => els.toast.classList.remove('show'), ms);
+  }
+
+  /** Set when the user finishes or closes the guided tour (persists skip + complete). */
+  const TOUR_SEEN_KEY = 'gtmLaunchpadTourSeen';
+
+  /**
+   * Driver.js measures the stage before the modal scroll area finishes moving. Scroll the target
+   * into view inside #settingsScroll, then refresh() so the spotlight and popover align.
+   * @param {{ pinnedSlack?: boolean }} [opts] — extra nudge so pinned meetings clear the fixed footer.
+   */
+  function scrollTourModalStepIntoView(el, driver, opts) {
+    const o = opts || {};
+    if (!el) return;
+    const refresh = () => {
+      if (driver && typeof driver.refresh === 'function') {
+        try {
+          driver.refresh();
+        } catch (e) {
+          /* ignore */
+        }
+      }
+    };
+    const scroller = document.getElementById('settingsScroll');
+    const inScroll = scroller && scroller.contains(el);
+    if (!inScroll) {
+      requestAnimationFrame(() => requestAnimationFrame(refresh));
+      setTimeout(refresh, 50);
+      setTimeout(refresh, 220);
+      return;
+    }
+    const nudge = () => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          refresh();
+          setTimeout(refresh, 120);
+        });
+      });
+      if (o.pinnedSlack) {
+        setTimeout(() => {
+          const slack = 96;
+          const sr = scroller.getBoundingClientRect();
+          const er = el.getBoundingClientRect();
+          const gapBelowEl = sr.bottom - er.bottom;
+          if (gapBelowEl < slack) {
+            scroller.scrollTop += slack - gapBelowEl;
+          }
+          refresh();
+          setTimeout(refresh, 80);
+        }, 120);
+      } else {
+        setTimeout(refresh, 200);
+        setTimeout(refresh, 420);
+      }
+    };
+    requestAnimationFrame(() => requestAnimationFrame(nudge));
+  }
+
+  function buildAppTourSteps() {
+    return [
+      {
+        popover: {
+          title: 'Welcome',
+          description:
+            'This walkthrough covers saved events, the working calendar, print handouts, and the Event & roster editor. Use Next or click the overlay to advance.',
+          side: 'over',
+          align: 'center'
+        }
+      },
+      {
+        element: '.header-event-strip',
+        popover: {
+          title: 'Saved events',
+          description:
+            'Pick which event you are editing, start a new blank event, or delete the current one. Everything is stored in this browser.',
+          side: 'bottom',
+          align: 'start'
+        }
+      },
+      {
+        element: '#tourCalendarPanel',
+        popover: {
+          title: 'Working calendar',
+          description:
+            'After you generate a schedule, the time × room grid appears here. The title matches your event name.',
+          side: 'bottom',
+          align: 'start'
+        }
+      },
+      {
+        element: '#scheduleTable',
+        popover: {
+          title: 'Schedule grid',
+          description: 'Rows are time slots; columns are parallel rooms. Each cell shows who meets whom.',
+          side: 'top',
+          align: 'center'
+        }
+      },
+      {
+        element: '.calendar-print-toolbar',
+        popover: {
+          title: 'Print handout',
+          description:
+            'Choose full schedule or one participant’s list, then use Print / PDF for a layout suited to delegations (not the same as the browser’s generic print).',
+          side: 'bottom',
+          align: 'end'
+        }
+      },
+      {
+        element: '#btnOpenSettings',
+        popover: {
+          title: 'Edit event & roster',
+          description:
+            'All roster and scheduling options live here. Click Next to open the editor and continue the tour.',
+          side: 'left',
+          align: 'center',
+          onNextClick: (element, step, { driver }) => {
+            openSettingsModal({ focus: 'eventName' });
+            requestAnimationFrame(() => {
+              setTimeout(() => driver.moveNext(), 200);
+            });
+          }
+        }
+      },
+      {
+        element: '#tourStepEventSetup',
+        popover: {
+          title: 'Event setup',
+          description:
+            'Set the event name, day window, slot length, and how many parallel rooms (columns) the scheduler can use.',
+          side: 'left',
+          align: 'start',
+          onPrevClick: (element, step, { driver }) => {
+            closeSettingsModal();
+            requestAnimationFrame(() => {
+              setTimeout(() => driver.movePrevious(), 200);
+            });
+          }
+        },
+        onHighlighted: (element, _step, { driver }) => {
+          scrollTourModalStepIntoView(element, driver);
+        }
+      },
+      {
+        element: '#tourStepRoster',
+        popover: {
+          title: 'Roster',
+          description:
+            'Upload CSV, JSON, or Excel with name, type (Corp or Startup), and sector. Download a template or restore the demo roster anytime.',
+          side: 'left',
+          align: 'start'
+        },
+        onHighlighted: (element, _step, { driver }) => {
+          scrollTourModalStepIntoView(element, driver);
+        }
+      },
+      {
+        element: '#tourStepParticipants',
+        popover: {
+          title: 'Participants',
+          description:
+            'Adjust names and sectors, add or remove corporates and startups, then regenerate the grid when you are ready.',
+          side: 'left',
+          align: 'start'
+        },
+        onHighlighted: (element, _step, { driver }) => {
+          scrollTourModalStepIntoView(element, driver);
+        }
+      },
+      {
+        element: '#tourStepPins',
+        onHighlighted: (element, _step, { driver }) => {
+          scrollTourModalStepIntoView(element, driver, { pinnedSlack: true });
+        },
+        popover: {
+          title: 'Pinned meetings',
+          description:
+            'Force specific corporate–startup pairs. The tool assigns time and room; pins must share a sector.',
+          side: 'left',
+          align: 'start'
+        }
+      },
+      {
+        element: '#tourStepDelay',
+        popover: {
+          title: 'Corporate delay',
+          description:
+            'Optionally block one corporate from having meetings before a chosen clock time.',
+          side: 'left',
+          align: 'start'
+        },
+        onHighlighted: (element, _step, { driver }) => {
+          scrollTourModalStepIntoView(element, driver);
+        }
+      },
+      {
+        element: '#tourOfficialRules',
+        popover: {
+          title: 'Official rules',
+          description: 'Expand this section for a concise summary of sector rules, capacity, and pin behavior.',
+          side: 'left',
+          align: 'start'
+        },
+        onHighlighted: (element, _step, { driver }) => {
+          scrollTourModalStepIntoView(element, driver);
+        }
+      },
+      {
+        element: '#tourModalFoot',
+        popover: {
+          title: 'Generate & data',
+          description:
+            'Clear all data resets saved events. Close leaves the editor; Generate applies your settings and fills the calendar. You can run Tour again from the header anytime.',
+          side: 'top',
+          align: 'center'
+        },
+        onHighlighted: (element, _step, { driver }) => {
+          scrollTourModalStepIntoView(element, driver);
+        }
+      }
+    ];
+  }
+
+  function startAppTour() {
+    const driverNs = typeof window !== 'undefined' && window.driver && window.driver.js;
+    const driverFactory = driverNs && driverNs.driver;
+    if (typeof driverFactory !== 'function') {
+      toast('Could not load the tour. Check your network and refresh.');
+      return;
+    }
+    tourActive = true;
+    const d = driverFactory({
+      showProgress: true,
+      smoothScroll: true,
+      overlayClickBehavior: 'nextStep',
+      allowClose: true,
+      stagePadding: 12,
+      stageRadius: 10,
+      overlayColor: 'rgb(0, 45, 84)',
+      overlayOpacity: 0.42,
+      popoverClass: 'driver-popover-gtm',
+      steps: buildAppTourSteps(),
+      onDestroyed: () => {
+        tourActive = false;
+        try {
+          localStorage.setItem(TOUR_SEEN_KEY, '1');
+        } catch (e) {
+          /* ignore quota / private mode */
+        }
+      }
+    });
+    d.drive(0);
   }
 
   function showRosterErr(msg) {
@@ -2554,6 +3288,74 @@
     requestScheduleUpdate();
   }
 
+  function addParticipantForAssistant(type, name, sector) {
+    type = type === 'Corp' || type === 'Startup' ? type : 'Startup';
+    const sameSide = participants.filter((p) => p.type === type).length;
+    if (sameSide >= MAX_PER_SIDE) {
+      return { ok: false, error: 'Max ' + MAX_PER_SIDE + ' ' + (type === 'Corp' ? 'corporates' : 'startups') + '.' };
+    }
+    const id = nextIdForType(type);
+    let sec = allSectorOptions()[0] || SECTORS[0];
+    if (typeof sector === 'string' && sector.trim()) sec = sector.trim();
+    const label =
+      typeof name === 'string' && name.trim()
+        ? name.trim()
+        : (type === 'Corp' ? 'New corporate ' + id : 'New startup ' + id);
+    participants.push({ id, type, name: label, sector: sec });
+    showRosterErr('');
+    populateDelayCorpSelect();
+    populateExportScope();
+    syncDelayControls();
+    renderSectorEditors();
+    renderPinnedEditors();
+    requestScheduleUpdate();
+    return { ok: true, id };
+  }
+
+  function removeParticipantForAssistant(id) {
+    const target = participants.find((p) => p.id === id);
+    if (!target) return { ok: false, error: 'No participant with id ' + id };
+    const sameSide = participants.filter((p) => p.type === target.type).length;
+    if (sameSide <= 1) {
+      return { ok: false, error: 'Need at least one ' + (target.type === 'Corp' ? 'corporate' : 'startup') + '.' };
+    }
+    participants = participants.filter((p) => p.id !== id);
+    prunePins();
+    populateDelayCorpSelect();
+    populateExportScope();
+    syncDelayControls();
+    renderSectorEditors();
+    renderPinnedEditors();
+    requestScheduleUpdate();
+    return { ok: true };
+  }
+
+  function updateParticipantForAssistant(id, name, sector, newType) {
+    const p = participants.find((x) => x.id === id);
+    if (!p) return { ok: false, error: 'No participant with id ' + id };
+    if ((newType === 'Corp' || newType === 'Startup') && newType !== p.type) {
+      if (participants.filter((x) => x.type === p.type).length <= 1) {
+        return { ok: false, error: 'Cannot change type: need at least one ' + (p.type === 'Corp' ? 'corporate' : 'startup') + '.' };
+      }
+      const oldId = p.id;
+      fixedPairings = fixedPairings.filter((x) => x.startupId !== oldId && x.corporateId !== oldId);
+      p.id = nextIdForType(newType);
+      p.type = newType;
+    }
+    if (typeof name === 'string' && name.trim()) p.name = name.trim();
+    if (typeof sector === 'string' && sector.trim()) p.sector = sector.trim();
+    const v = validateRoster(participants);
+    if (!v.ok) return { ok: false, error: v.errors[0] || 'Invalid roster.' };
+    prunePins();
+    populateDelayCorpSelect();
+    populateExportScope();
+    syncDelayControls();
+    renderSectorEditors();
+    renderPinnedEditors();
+    requestScheduleUpdate();
+    return { ok: true, id: p.id };
+  }
+
   function renderSectorEditors() {
     els.sectorEditors.innerHTML = '';
     const opts = allSectorOptions();
@@ -2724,9 +3526,16 @@
     return m.s.name + ' with ' + m.c.name + ' (' + m.s.sector + ')';
   }
 
+  function getActiveEventDisplayName() {
+    const ev = events.find((e) => e.id === activeEventId);
+    if (!ev || typeof ev.name !== 'string') return '';
+    return ev.name.trim();
+  }
+
   function updateBrandAndTitle() {
     readEventFromDom();
-    els.scheduleTitle.textContent = 'Working calendar';
+    const name = getActiveEventDisplayName();
+    els.scheduleTitle.textContent = name ? name + ' · Working calendar' : 'Working calendar';
   }
 
   function renderPrintHandout(plan) {
@@ -2749,10 +3558,15 @@
       '–' +
       (slotTimes.length ? minutesToTime(timeToMinutes(slotTimes[slotTimes.length - 1]) + (eventConfig.slotMinutes || 60)) : '—');
 
+    const rawEventName = getActiveEventDisplayName();
+    const eventNameHtml = rawEventName ? escapeHtml(rawEventName) : '';
+
     if (filter) {
       lines.push('<h1>Intralink GTM Launchpad — ' + escapeHtml(filter.name) + '</h1>');
       lines.push(
-        '<p class="meta">Your meetings only · ' +
+        '<p class="meta">' +
+          (eventNameHtml ? eventNameHtml + ' · ' : '') +
+          'Your meetings only · ' +
           escapeHtml(slotMeta) +
           ' · ' +
           (filter.type === 'Corp' ? 'Corporate' : 'Startup') +
@@ -2795,7 +3609,11 @@
     } else {
       const nStartup = participants.filter((p) => p.type === 'Startup').length;
       const nCorp = participants.filter((p) => p.type === 'Corp').length;
-      lines.push('<h1>Intralink GTM Launchpad — schedule</h1>');
+      lines.push(
+        '<h1>Intralink GTM Launchpad' +
+          (eventNameHtml ? ' — ' + eventNameHtml : ' — Schedule') +
+          '</h1>'
+      );
       lines.push(
         '<p class="meta">' +
           escapeHtml(slotMeta) +
@@ -2958,6 +3776,586 @@
     toast('Roster loaded');
   }
 
+  // --- AI assistant (Puter): snapshot, tools, chat loop ---
+  const AI_PUTER_MODEL = 'gpt-5-nano';
+  /** @type {Array<{ role: string, content?: any, name?: string, tool_calls?: any[], tool_call_id?: string }>} */
+  let aiPuterHistory = [];
+  let aiPuterBusy = false;
+
+  function aiPuterTestMode() {
+    try {
+      if (/[?&]puterTest=1(?:&|$)/.test(location.search)) return true;
+      if (localStorage.getItem('puterAiTestMode') === '1') return true;
+    } catch (e) {
+      /* ignore */
+    }
+    return false;
+  }
+
+  function aiMutatingToolBlocked() {
+    if (!isEditorModalOpen()) return null;
+    toast('Close Edit event & roster to let the assistant apply changes.');
+    return 'Error: Close the **Edit event & roster** modal first. Mutating tools are disabled while the editor is open.';
+  }
+
+  function buildAssistantSystemPrompt() {
+    const ev = events.find((e) => e.id === activeEventId);
+    const label = ev ? ev.name + ' (' + activeEventId + ')' : activeEventId;
+    return (
+      'You are the Intralink GTM Launchpad assistant. Help users understand and adjust bilateral meeting schedules, rosters, pinned pairs, and timing. ' +
+        'Always use the get_app_snapshot tool when you need current data unless the user message is trivial. ' +
+        'Be concise. Do not invent participant ids—read them from the snapshot. ' +
+        'Privacy: roster and schedule data are sent to the AI provider when the user chats.\n\n' +
+        'Formatting: Use a blank line between sections. For lists, use lines starting with "- " (hyphen + space). ' +
+        'Put each time slot or distinct idea on its own line so the chat UI can show readable paragraphs and bullets.\n\n' +
+        'Active event: ' +
+        label +
+        '.'
+    );
+  }
+
+  function buildAppSnapshotObject() {
+    readEventFromDom();
+    if (!settingsModalOpen) {
+      renderSchedule();
+    }
+    const ev = events.find((e) => e.id === activeEventId);
+    const R = Math.min(MAX_TABLES, Math.max(1, eventConfig.tableCount || 1));
+    let schedule = null;
+    if (lastPlan && lastPlan.rows) {
+      schedule = {
+        rows: lastPlan.rows.map((r) => ({
+          time: r.time,
+          rooms: r.cells.slice(0, R).map((c) => (c ? fmtMeeting(c) : null))
+        })),
+        uncovered: lastPlan.uncovered,
+        pinFailures: lastPlan.pinFailures
+      };
+    }
+    return {
+      activeEventId,
+      activeEventName: ev ? ev.name : '',
+      editorModalOpen: settingsModalOpen,
+      scheduleStale: !!scheduleStale && settingsModalOpen,
+      events: events.map((e) => ({ id: e.id, name: e.name })),
+      eventConfig: {
+        dayStart: eventConfig.dayStart,
+        dayEnd: eventConfig.dayEnd,
+        slotMinutes: eventConfig.slotMinutes,
+        tableCount: eventConfig.tableCount
+      },
+      participants: participants.map((p) => ({
+        id: p.id,
+        name: p.name,
+        sector: p.sector,
+        type: p.type
+      })),
+      fixedPairings: fixedPairings.slice(),
+      delay: {
+        delayEnabled,
+        delayCorpId,
+        delayFromTime
+      },
+      schedule
+    };
+  }
+
+  function getAppSnapshotJson() {
+    return JSON.stringify(buildAppSnapshotObject());
+  }
+
+  function aiMessageBodyToText(msg) {
+    if (!msg) return '';
+    const c = msg.content;
+    if (typeof c === 'string') return c;
+    if (Array.isArray(c)) {
+      return c
+        .map((b) => {
+          if (typeof b === 'string') return b;
+          if (b && typeof b === 'object' && typeof b.text === 'string') return b.text;
+          return '';
+        })
+        .join('');
+    }
+    return '';
+  }
+
+  function aiChatResponseToText(res) {
+    if (res == null) return '';
+    if (typeof res === 'string') return res;
+    const t = aiMessageBodyToText(res.message);
+    return t || String(res);
+  }
+
+  function aiParseToolArgs(raw) {
+    if (raw == null || raw === '') return {};
+    if (typeof raw === 'object') return raw;
+    try {
+      return JSON.parse(String(raw));
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function aiSwitchEventTool(eventId) {
+    const id = String(eventId || '').trim();
+    if (!id) return JSON.stringify({ ok: false, error: 'event_id required' });
+    const next = events.find((e) => e.id === id);
+    if (!next) return JSON.stringify({ ok: false, error: 'Unknown event_id' });
+    if (id === activeEventId) return JSON.stringify({ ok: true, message: 'Already active.', activeEventId: id });
+    const blocked = aiMutatingToolBlocked();
+    if (blocked) return blocked;
+    readEventFromDom();
+    delayFromTime = els.delayFromTime.value || delayFromTime;
+    if (!validateRoster(participants).ok) {
+      return JSON.stringify({ ok: false, error: 'Fix roster validation before switching events.' });
+    }
+    flushActiveEventIntoEvents();
+    activeEventId = id;
+    applySnapshotToGlobals(next);
+    applyEventToDom();
+    showRosterErr('');
+    prunePins();
+    populateDelayCorpSelect();
+    populateExportScope();
+    syncDelayControls();
+    renderSectorEditors();
+    renderPinnedEditors();
+    renderSchedule();
+    renderEventSelect();
+    scheduleSave();
+    return JSON.stringify({ ok: true, activeEventId: id });
+  }
+
+  function aiExecuteTool(name, args) {
+    const a = args || {};
+    try {
+      switch (name) {
+        case 'get_app_snapshot':
+          return getAppSnapshotJson();
+        case 'switch_event':
+          return aiSwitchEventTool(a.event_id);
+        case 'create_event': {
+          const blocked = aiMutatingToolBlocked();
+          if (blocked) return blocked;
+          const r = createEventFromAssistant(typeof a.name === 'string' ? a.name : '');
+          return JSON.stringify(r);
+        }
+        case 'rename_active_event': {
+          const blocked = aiMutatingToolBlocked();
+          if (blocked) return blocked;
+          const nm = typeof a.name === 'string' ? a.name.trim() : '';
+          if (!nm) return JSON.stringify({ ok: false, error: 'name required' });
+          const idx = events.findIndex((e) => e.id === activeEventId);
+          if (idx < 0) return JSON.stringify({ ok: false, error: 'No active event' });
+          events[idx].name = nm;
+          flushActiveEventIntoEvents();
+          renderEventSelect();
+          applyEventToDom();
+          updateBrandAndTitle();
+          scheduleSave();
+          return JSON.stringify({ ok: true, name: nm });
+        }
+        case 'set_event_config': {
+          const blocked = aiMutatingToolBlocked();
+          if (blocked) return blocked;
+          if (typeof a.day_start === 'string' && /^\d{1,2}:\d{2}$/.test(a.day_start.trim())) {
+            eventConfig.dayStart = a.day_start.trim();
+          }
+          if (typeof a.day_end === 'string' && /^\d{1,2}:\d{2}$/.test(a.day_end.trim())) {
+            eventConfig.dayEnd = a.day_end.trim();
+          }
+          if (a.slot_minutes != null) {
+            const sm = parseInt(a.slot_minutes, 10);
+            if ([15, 30, 45, 60].includes(sm)) eventConfig.slotMinutes = sm;
+          }
+          if (a.table_count != null) {
+            const tc = parseInt(a.table_count, 10);
+            if (!isNaN(tc)) eventConfig.tableCount = Math.min(MAX_TABLES, Math.max(1, tc));
+          }
+          applyEventToDom();
+          renderSchedule();
+          flushActiveEventIntoEvents();
+          scheduleSave();
+          return JSON.stringify({ ok: true, eventConfig: { ...eventConfig } });
+        }
+        case 'set_corporate_delay': {
+          const blocked = aiMutatingToolBlocked();
+          if (blocked) return blocked;
+          if (typeof a.delay_enabled === 'boolean') delayEnabled = a.delay_enabled;
+          if (typeof a.delay_corp_id === 'string') {
+            const id = a.delay_corp_id.trim();
+            if (participants.some((p) => p.id === id && p.type === 'Corp')) delayCorpId = id;
+          }
+          if (typeof a.delay_from_time === 'string' && /^\d{2}:\d{2}$/.test(a.delay_from_time.trim())) {
+            delayFromTime = a.delay_from_time.trim();
+          }
+          syncDelayControls();
+          renderSchedule();
+          flushActiveEventIntoEvents();
+          scheduleSave();
+          return JSON.stringify({
+            ok: true,
+            delay: { delayEnabled, delayCorpId, delayFromTime }
+          });
+        }
+        case 'add_participant': {
+          const blocked = aiMutatingToolBlocked();
+          if (blocked) return blocked;
+          const t = a.type === 'Corp' || a.type === 'Startup' ? a.type : null;
+          if (!t) return JSON.stringify({ ok: false, error: 'type must be Corp or Startup' });
+          const r = addParticipantForAssistant(t, typeof a.name === 'string' ? a.name : '', typeof a.sector === 'string' ? a.sector : '');
+          flushActiveEventIntoEvents();
+          scheduleSave();
+          return JSON.stringify(r);
+        }
+        case 'update_participant': {
+          const blocked = aiMutatingToolBlocked();
+          if (blocked) return blocked;
+          const pid = typeof a.id === 'string' ? a.id.trim() : '';
+          if (!pid) return JSON.stringify({ ok: false, error: 'id required' });
+          const nt = a.type === 'Corp' || a.type === 'Startup' ? a.type : undefined;
+          const r = updateParticipantForAssistant(
+            pid,
+            typeof a.name === 'string' ? a.name : '',
+            typeof a.sector === 'string' ? a.sector : '',
+            nt
+          );
+          flushActiveEventIntoEvents();
+          scheduleSave();
+          return JSON.stringify(r);
+        }
+        case 'remove_participant': {
+          const blocked = aiMutatingToolBlocked();
+          if (blocked) return blocked;
+          const pid = typeof a.id === 'string' ? a.id.trim() : '';
+          if (!pid) return JSON.stringify({ ok: false, error: 'id required' });
+          const r = removeParticipantForAssistant(pid);
+          flushActiveEventIntoEvents();
+          scheduleSave();
+          return JSON.stringify(r);
+        }
+        case 'add_pinned_pair': {
+          const blocked = aiMutatingToolBlocked();
+          if (blocked) return blocked;
+          const su = typeof a.startup_id === 'string' ? a.startup_id.trim() : '';
+          const co = typeof a.corporate_id === 'string' ? a.corporate_id.trim() : '';
+          const s = participants.find((p) => p.id === su && p.type === 'Startup');
+          const c = participants.find((p) => p.id === co && p.type === 'Corp');
+          if (!s || !c) return JSON.stringify({ ok: false, error: 'startup_id and corporate_id must match roster ids' });
+          if (s.sector !== c.sector) {
+            return JSON.stringify({ ok: false, error: 'Sectors must match for pin (' + s.sector + ' vs ' + c.sector + ').' });
+          }
+          fixedPairings.push({ startupId: su, corporateId: co });
+          renderPinnedEditors();
+          requestScheduleUpdate();
+          flushActiveEventIntoEvents();
+          scheduleSave();
+          return JSON.stringify({ ok: true, fixedPairings: fixedPairings.slice() });
+        }
+        case 'remove_pinned_pair': {
+          const blocked = aiMutatingToolBlocked();
+          if (blocked) return blocked;
+          const su = typeof a.startup_id === 'string' ? a.startup_id.trim() : '';
+          const co = typeof a.corporate_id === 'string' ? a.corporate_id.trim() : '';
+          const before = fixedPairings.length;
+          fixedPairings = fixedPairings.filter((p) => !(p.startupId === su && p.corporateId === co));
+          if (fixedPairings.length === before) {
+            return JSON.stringify({ ok: false, error: 'Pinned pair not found' });
+          }
+          renderPinnedEditors();
+          requestScheduleUpdate();
+          flushActiveEventIntoEvents();
+          scheduleSave();
+          return JSON.stringify({ ok: true });
+        }
+        default:
+          return JSON.stringify({ ok: false, error: 'Unknown tool: ' + name });
+      }
+    } catch (err) {
+      return JSON.stringify({ ok: false, error: err && err.message ? err.message : String(err) });
+    }
+  }
+
+  const AI_PUTER_TOOLS = [
+    {
+      type: 'function',
+      function: {
+        name: 'get_app_snapshot',
+        description:
+          'Read the full current state: saved events, active event, roster, pins, corporate delay, and a compact schedule grid (or null if no slots). Use for accurate answers.',
+        parameters: { type: 'object', properties: {}, additionalProperties: false }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'switch_event',
+        description: 'Switch the active saved event by id.',
+        parameters: {
+          type: 'object',
+          properties: {
+            event_id: { type: 'string', description: 'Event id from the snapshot events list' }
+          },
+          required: ['event_id']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'create_event',
+        description: 'Create a new saved event and make it active (blank demo roster).',
+        parameters: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', description: 'Display name for the new event' }
+          },
+          additionalProperties: false
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'rename_active_event',
+        description: 'Rename the currently active event.',
+        parameters: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' }
+          },
+          required: ['name']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'set_event_config',
+        description: 'Update day window, slot length, or number of parallel rooms for the active event.',
+        parameters: {
+          type: 'object',
+          properties: {
+            day_start: { type: 'string', description: 'HH:MM' },
+            day_end: { type: 'string', description: 'HH:MM' },
+            slot_minutes: { type: 'integer', enum: [15, 30, 45, 60] },
+            table_count: { type: 'integer', minimum: 1, maximum: 20 }
+          },
+          additionalProperties: false
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'set_corporate_delay',
+        description: 'Configure delayed start for one corporate (meetings from a given time onward).',
+        parameters: {
+          type: 'object',
+          properties: {
+            delay_enabled: { type: 'boolean' },
+            delay_corp_id: { type: 'string' },
+            delay_from_time: { type: 'string', description: 'HH:MM earliest slot for delayed corporate' }
+          },
+          additionalProperties: false
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'add_participant',
+        description: 'Add a corporate or startup to the active event roster.',
+        parameters: {
+          type: 'object',
+          properties: {
+            type: { type: 'string', enum: ['Corp', 'Startup'] },
+            name: { type: 'string' },
+            sector: { type: 'string' }
+          },
+          required: ['type']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'update_participant',
+        description: 'Update name, sector, and optionally change Corp/Startup type (assigns a new id on type change).',
+        parameters: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            sector: { type: 'string' },
+            type: { type: 'string', enum: ['Corp', 'Startup'] }
+          },
+          required: ['id']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'remove_participant',
+        description: 'Remove a participant by id (must leave at least one corp and one startup).',
+        parameters: {
+          type: 'object',
+          properties: { id: { type: 'string' } },
+          required: ['id']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'add_pinned_pair',
+        description: 'Pin a startup–corporate meeting (same sector).',
+        parameters: {
+          type: 'object',
+          properties: {
+            startup_id: { type: 'string' },
+            corporate_id: { type: 'string' }
+          },
+          required: ['startup_id', 'corporate_id']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'remove_pinned_pair',
+        description: 'Remove a pinned pair matching both ids.',
+        parameters: {
+          type: 'object',
+          properties: {
+            startup_id: { type: 'string' },
+            corporate_id: { type: 'string' }
+          },
+          required: ['startup_id', 'corporate_id']
+        }
+      }
+    }
+  ];
+
+  async function aiPuterRunChatTurn() {
+    const userText = String(els.aiChatInput.value || '').trim();
+    if (!userText || aiPuterBusy) return;
+    if (typeof puter === 'undefined' || !puter.ai || typeof puter.ai.chat !== 'function') {
+      aiAppendChatBubble('assistant', 'Puter SDK not loaded. Check that https://js.puter.com/v2/ is reachable.');
+      return;
+    }
+    aiPuterBusy = true;
+    els.aiChatSend.disabled = true;
+    els.aiChatInput.value = '';
+    aiAppendChatBubble('user', userText);
+    aiPuterHistory.push({ role: 'user', content: userText });
+
+    const thinking = document.createElement('div');
+    thinking.className = 'ai-chat-msg assistant';
+    thinking.textContent = 'Thinking…';
+    thinking.dataset.aiThinking = '1';
+    els.aiChatMessages.appendChild(thinking);
+    els.aiChatMessages.scrollTop = els.aiChatMessages.scrollHeight;
+
+    try {
+      let messages = [{ role: 'system', content: buildAssistantSystemPrompt() }].concat(aiPuterHistory);
+      const opts = { model: AI_PUTER_MODEL, tools: AI_PUTER_TOOLS, testMode: aiPuterTestMode() };
+      let rounds = 0;
+      let finalText = '';
+      while (rounds < 10) {
+        rounds++;
+        const res = await puter.ai.chat(messages, opts);
+        const msg = res && res.message;
+        if (!msg) {
+          finalText = aiChatResponseToText(res) || 'Empty response.';
+          break;
+        }
+        const tcalls = msg.tool_calls;
+        if (!tcalls || !tcalls.length) {
+          finalText = aiMessageBodyToText(msg) || aiChatResponseToText(res);
+          messages.push({
+            role: 'assistant',
+            content: msg.content != null ? msg.content : finalText
+          });
+          break;
+        }
+        messages.push(msg);
+        for (let i = 0; i < tcalls.length; i++) {
+          const tc = tcalls[i];
+          const fn = tc.function || {};
+          const toolName = fn.name || '';
+          const args = aiParseToolArgs(fn.arguments);
+          const out = aiExecuteTool(toolName, args);
+          const tid = tc.id || 'call_' + i;
+          messages.push({ role: 'tool', tool_call_id: tid, content: out });
+        }
+      }
+      if (rounds >= 10 && !finalText) finalText = 'Stopped after too many tool rounds.';
+      aiPuterHistory = messages.slice(1);
+      const thinkEl = els.aiChatMessages.querySelector('[data-ai-thinking="1"]');
+      if (thinkEl) thinkEl.remove();
+      aiAppendChatBubble('assistant', finalText || '(No text)');
+    } catch (e) {
+      const thinkEl = els.aiChatMessages.querySelector('[data-ai-thinking="1"]');
+      if (thinkEl) thinkEl.remove();
+      aiAppendChatBubble('assistant', 'Error: ' + (e && e.message ? e.message : String(e)));
+    } finally {
+      aiPuterBusy = false;
+      els.aiChatSend.disabled = false;
+      els.aiChatMessages.scrollTop = els.aiChatMessages.scrollHeight;
+    }
+  }
+
+  /**
+   * Renders assistant text as safe HTML: paragraph breaks (blank lines), single newlines as &lt;br&gt;,
+   * and blocks where every line is "- …" or "• …" as a bullet list.
+   */
+  function aiFormatAssistantHtml(plain) {
+    const text = String(plain == null ? '' : plain);
+    const blocks = text.split(/\n\n+/).filter((b) => b.trim() !== '');
+    if (!blocks.length) {
+      return '<div class="ai-msg-body"></div>';
+    }
+    const chunks = blocks.map((block) => {
+      const lines = block.split('\n');
+      const nonEmpty = lines.filter((l) => l.trim() !== '');
+      const isList =
+        nonEmpty.length > 0 && nonEmpty.every((l) => /^\s*[-•]\s+/.test(l));
+      if (isList) {
+        const items = nonEmpty
+          .map((l) => l.replace(/^\s*[-•]\s+/, '').trim())
+          .map((t) => '<li>' + escapeHtml(t) + '</li>')
+          .join('');
+        return '<ul class="ai-md-ul">' + items + '</ul>';
+      }
+      return '<p class="ai-md-p">' + lines.map((l) => escapeHtml(l)).join('<br>') + '</p>';
+    });
+    return '<div class="ai-msg-body">' + chunks.join('') + '</div>';
+  }
+
+  function aiAppendChatBubble(role, text) {
+    const div = document.createElement('div');
+    div.className = 'ai-chat-msg ' + (role === 'user' ? 'user' : 'assistant');
+    if (role === 'assistant') {
+      div.innerHTML = aiFormatAssistantHtml(text);
+    } else {
+      div.textContent = text;
+    }
+    els.aiChatMessages.appendChild(div);
+  }
+
+  function aiSetPanelOpen(open) {
+    if (!els.aiChatPanel || !els.aiChatFab) return;
+    els.aiChatPanel.classList.toggle('is-hidden', !open);
+    els.aiChatFab.setAttribute('aria-expanded', open ? 'true' : 'false');
+    els.aiChatPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
+    if (open) {
+      setTimeout(() => els.aiChatInput && els.aiChatInput.focus(), 10);
+    }
+  }
+
   // --- DOM event wiring (inputs, modal, print, boot) ---
   els.rosterFile.addEventListener('change', () => {
     const f = els.rosterFile.files && els.rosterFile.files[0];
@@ -3041,7 +4439,7 @@
     requestScheduleUpdate();
   });
   els.delayFromTime.addEventListener('change', () => {
-    delayFromTime = els.delayFromTime.value || '09:00';
+    delayFromTime = els.delayFromTime.value || '13:00';
     requestScheduleUpdate();
   });
 
@@ -3057,12 +4455,46 @@
     btn.setAttribute('aria-haspopup', 'dialog');
     btn.addEventListener('click', openSettingsModal);
   });
+  if (els.btnAppTour) {
+    els.btnAppTour.addEventListener('click', () => startAppTour());
+  }
+  if (els.aiChatFab) {
+    els.aiChatFab.addEventListener('click', () => {
+      aiSetPanelOpen(els.aiChatPanel.classList.contains('is-hidden'));
+    });
+  }
+  if (els.aiChatClose) els.aiChatClose.addEventListener('click', () => aiSetPanelOpen(false));
+  if (els.aiChatClear) {
+    els.aiChatClear.addEventListener('click', () => {
+      aiPuterHistory = [];
+      if (els.aiChatMessages) els.aiChatMessages.replaceChildren();
+    });
+  }
+  if (els.aiChatSend) els.aiChatSend.addEventListener('click', () => aiPuterRunChatTurn());
+  if (els.aiChatInput) {
+    els.aiChatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        aiPuterRunChatTurn();
+      }
+    });
+  }
   els.btnCloseSettings.addEventListener('click', closeSettingsModal);
   els.btnSettingsCancel.addEventListener('click', closeSettingsModal);
   els.settingsModalBackdrop.addEventListener('click', closeSettingsModal);
   els.btnGenerateSchedule.addEventListener('click', generateScheduleFromEditor);
   document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape' || !settingsModalOpen) return;
+    if (e.key !== 'Escape') return;
+    if (tourActive) {
+      e.preventDefault();
+      return;
+    }
+    if (els.aiChatPanel && !els.aiChatPanel.classList.contains('is-hidden')) {
+      e.preventDefault();
+      aiSetPanelOpen(false);
+      return;
+    }
+    if (!settingsModalOpen) return;
     e.preventDefault();
     closeSettingsModal();
   });
@@ -3079,6 +4511,21 @@
   renderPinnedEditors();
   renderSchedule();
   scheduleSave();
+
+  try {
+    if (!localStorage.getItem(TOUR_SEEN_KEY)) {
+      setTimeout(() => {
+        try {
+          if (localStorage.getItem(TOUR_SEEN_KEY) || tourActive) return;
+          startAppTour();
+        } catch (e) {
+          /* ignore */
+        }
+      }, 450);
+    }
+  } catch (e) {
+    /* ignore quota / private mode */
+  }
 })();
 
   </script>
