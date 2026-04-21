@@ -1,0 +1,17 @@
+---
+description: Find code in monolithic index.html using section comment markers
+globs: index.html
+alwaysApply: false
+---
+
+# `index.html` navigation
+
+The app lives in a single large `index.html` (markup, CSS, and script). Before editing or debugging, **locate the right region by searching** (workspace search or editor find):
+
+| Marker | Where | Typical use |
+|--------|--------|----------------|
+| `=== ` | HTML comments | Head assets, stylesheet blocks, page shell, modal, script tag |
+| `// ---` | JavaScript | State, modal, parsers, persistence, scheduler, render, event wiring |
+| `/* ---` | CSS | Tokens, header, panels, table, modal, print |
+
+The file banner after `<!DOCTYPE html>` restates these patterns. Prefer **jumping to a section** over reading the file linearly.
