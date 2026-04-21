@@ -1,0 +1,9 @@
+[
+  { "id": "C-A", "name": "Acme Corp", "type": "Corp", "sector": "Automotive" },
+  { "id": "C-B", "name": "Beta Systems", "type": "Corp", "sector": "Electronics" },
+  { "id": "C-G", "name": "Gamma Power", "type": "Corp", "sector": "Energy" },
+  { "id": "S-D", "name": "Delta Motors", "type": "Startup", "sector": "Automotive" },
+  { "id": "S-E", "name": "Epsilon Vision", "type": "Startup", "sector": "Electronics" },
+  { "id": "S-Z", "name": "Zeta Grid", "type": "Startup", "sector": "Energy" },
+  { "id": "S-H", "name": "Eta Spark", "type": "Startup", "sector": "Automotive" }
+]

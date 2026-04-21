@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Intralink GTM Launchpad — Japan trade-mission scheduler: 10 startups, 5 corporates, Rooms A &amp; B, sector rules, optional corporate delay window, Export Report.">
+  <meta name="description" content="Intralink GTM Launchpad — dynamic bilateral meeting scheduler: CSV/JSON/XLSX roster, configurable slots and tables, sector rules, pinned pairings, optional corporate delay, export.">
   <title>Intralink GTM Launchpad Scheduler</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=Lexend:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -25,37 +26,37 @@
     :root {
       --font-display: "Fraunces", Georgia, serif;
       --font-ui: "Lexend", system-ui, sans-serif;
-      --bg0: #0c0f12;
-      --bg1: #121820;
-      --surface: #181f28;
-      --surface2: #222b38;
-      --border: rgba(255, 255, 255, 0.08);
-      --text: #eef2f7;
-      --muted: #8b99ad;
-      --accent: #e85d4c;
-      --accent-dim: rgba(232, 93, 76, 0.15);
-      --gold: #d4a853;
-      --gold-dim: rgba(212, 168, 83, 0.12);
-      --ok: #5cbf8f;
-      --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+      /* Intralink site reference: #0089D0, #002D54, #204191, #17B9D1, #853683, #7B3F8D */
+      --brand: #0089d0;
+      --ink: #002d54;
+      --navy: #204191;
+      --teal: #17b9d1;
+      --plum: #853683;
+      --amethyst: #7b3f8d;
+      --bg0: #eceef1;
+      --bg1: #f4f5f7;
+      --surface: #ffffff;
+      --surface2: #f0f1f4;
+      --border: rgba(0, 45, 84, 0.12);
+      --text: var(--ink);
+      --muted: rgba(0, 45, 84, 0.58);
+      --accent: var(--brand);
+      --accent-dim: rgba(15, 23, 42, 0.06);
+      --accent-line: rgba(0, 137, 208, 0.38);
+      --gold: #0a7a98;
+      --gold-dim: rgba(23, 185, 209, 0.14);
+      --gold-line: rgba(23, 185, 209, 0.32);
+      --ok: #0a7d72;
+      --issue: #b45309;
+      --issue-dim: rgba(180, 83, 9, 0.12);
+      --issue-line: rgba(180, 83, 9, 0.3);
+      --btn-ghost-bg: rgba(0, 45, 84, 0.07);
+      --btn-ghost-border: rgba(0, 45, 84, 0.16);
+      --btn-ghost-hover-bg: rgba(0, 45, 84, 0.1);
+      --btn-ghost-hover-border: rgba(0, 45, 84, 0.24);
+      --shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
       --radius: 14px;
       --radius-sm: 10px;
-    }
-
-    [data-theme="light"] {
-      --bg0: #f4f1eb;
-      --bg1: #ebe6dc;
-      --surface: #ffffff;
-      --surface2: #f7f4ee;
-      --border: rgba(15, 20, 25, 0.08);
-      --text: #141a22;
-      --muted: #5c6575;
-      --accent: #c43d2e;
-      --accent-dim: rgba(196, 61, 46, 0.1);
-      --gold: #9a7324;
-      --gold-dim: rgba(154, 115, 36, 0.1);
-      --ok: #2d8a5e;
-      --shadow: 0 20px 60px rgba(20, 26, 34, 0.08);
     }
 
     *, *::before, *::after { box-sizing: border-box; }
@@ -66,18 +67,9 @@
       font-family: var(--font-ui);
       font-weight: 400;
       color: var(--text);
-      background:
-        radial-gradient(1200px 600px at 10% -10%, rgba(232, 93, 76, 0.12), transparent 55%),
-        radial-gradient(900px 500px at 100% 0%, rgba(212, 168, 83, 0.08), transparent 50%),
-        linear-gradient(165deg, var(--bg0), var(--bg1));
+      background: linear-gradient(180deg, var(--bg0) 0%, var(--bg1) 100%);
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
-    }
-
-    [data-theme="light"] body {
-      background:
-        radial-gradient(1000px 500px at 0% 0%, rgba(212, 168, 83, 0.15), transparent 50%),
-        linear-gradient(180deg, var(--bg0), #e8e3d9);
     }
 
     header.app-header {
@@ -97,17 +89,40 @@
       gap: 1.25rem;
       padding: 1.25rem 1.35rem;
       border-radius: var(--radius);
-      border: 1px solid var(--border);
-      background:
-        linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, transparent 42%),
-        var(--surface);
-      box-shadow: var(--shadow);
+      border: 1px solid rgba(0, 45, 84, 0.12);
+      background: var(--brand);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
     }
 
-    [data-theme="light"] .app-header-surface {
-      background:
-        linear-gradient(145deg, rgba(255, 255, 255, 0.85) 0%, var(--surface) 38%),
-        var(--surface);
+    .app-header-surface .brand-kicker {
+      color: rgba(255, 255, 255, 0.88);
+    }
+
+    .app-header-surface .brand h1 {
+      color: #fff;
+    }
+
+    .app-header-surface .brand-title-sub {
+      color: rgba(255, 255, 255, 0.78);
+    }
+
+    .app-header-surface .brand p {
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    .app-header-surface .header-actions {
+      background: rgba(0, 45, 84, 0.22);
+      border-color: rgba(255, 255, 255, 0.32);
+    }
+
+    .app-header-surface .export-scope-label {
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    .app-header-surface .export-scope-select {
+      background: #fff;
+      color: var(--ink);
+      border-color: rgba(0, 45, 84, 0.18);
     }
 
     @media (min-width: 640px) {
@@ -189,7 +204,7 @@
 
       .header-actions {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
         align-items: stretch;
         gap: 0.625rem 0.5rem;
         padding: 0.75rem;
@@ -249,7 +264,14 @@
       animation: rise 0.65s ease-out 0.05s both;
     }
 
-    .panel-lg { animation-delay: 0.1s; }
+    aside.panel {
+      border-left: 4px solid var(--amethyst);
+    }
+
+    .panel-lg {
+      animation-delay: 0.1s;
+      border-top: 4px solid var(--teal);
+    }
 
     .panel-head {
       padding: 1rem 1.25rem;
@@ -262,6 +284,28 @@
 
     .aside-panel-head {
       justify-content: flex-end;
+      background: linear-gradient(95deg, var(--amethyst) 0%, var(--plum) 52%, #5c2868 100%);
+      border-bottom-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .aside-panel-head .tag {
+      background: rgba(255, 255, 255, 0.16);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    .panel-lg .panel-head {
+      background: linear-gradient(115deg, var(--navy) 0%, #1a356f 55%, #2458a8 100%);
+      border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .panel-lg .panel-head h2 {
+      color: rgba(255, 255, 255, 0.94);
+    }
+
+    .gen-stamp {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.78);
     }
 
     .panel-head h2 {
@@ -331,7 +375,7 @@
       gap: 0.75rem;
       padding: 0.85rem 1rem;
       background: var(--accent-dim);
-      border: 1px solid rgba(232, 93, 76, 0.25);
+      border: 1px solid var(--accent-line);
       border-radius: var(--radius-sm);
     }
 
@@ -419,13 +463,19 @@
     }
 
     table.schedule thead th {
-      background: var(--surface2);
+      background: #e8eaee;
       font-size: 0.65rem;
       text-transform: uppercase;
       letter-spacing: 0.07em;
-      color: var(--muted);
+      color: var(--ink);
       font-weight: 600;
       text-align: left;
+      border-bottom-color: var(--border);
+      border-right-color: var(--border);
+    }
+
+    table.schedule thead th:first-child {
+      border-left-color: var(--border);
     }
 
     table.schedule thead th:not(:first-child) { text-align: center; }
@@ -440,13 +490,63 @@
       font-weight: 600;
       font-size: 0.9375rem;
       background: var(--surface2);
-      color: var(--text);
+      color: var(--ink);
     }
 
     table.schedule td.slot {
       text-align: center;
       min-width: 200px;
-      background: var(--surface);
+      background: #fff;
+    }
+
+    table.schedule.many-cols td.slot {
+      min-width: 140px;
+      padding: 0.65rem 0.5rem;
+      font-size: 0.78rem;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .pin-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 0.35rem;
+      align-items: center;
+    }
+
+    .pin-row select {
+      min-width: 0;
+      font-size: 0.75rem;
+      padding: 0.35rem 0.4rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .btn-pin-remove {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.45rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .btn-pin-remove:hover {
+      color: var(--accent);
+      border-color: var(--accent-line);
     }
 
     table.schedule tr:hover td.slot { background: var(--surface2); }
@@ -483,7 +583,7 @@
       border-radius: 999px;
       background: var(--gold-dim);
       color: var(--gold);
-      border: 1px solid rgba(212, 168, 83, 0.25);
+      border: 1px solid var(--gold-line);
     }
 
     footer.note {
@@ -550,8 +650,8 @@
       padding: 0.65rem 0.85rem;
       border-radius: var(--radius-sm);
       font-size: 0.75rem;
-      background: var(--accent-dim);
-      border: 1px solid rgba(232, 93, 76, 0.3);
+      background: var(--issue-dim);
+      border: 1px solid var(--issue-line);
       color: var(--text);
     }
 
@@ -619,13 +719,12 @@
       <div class="app-header-surface">
         <div class="brand">
           <div class="brand-copy">
-            <p class="brand-kicker">Japan trade mission · scheduler</p>
-            <h1>Intralink <span class="text-[var(--muted)] font-medium">GTM Launchpad</span></h1>
-            <p>10 Western startups × 5 Japanese corporates · 10:00–16:00 · Rooms A &amp; B · roster from <strong>Participants (1).xlsx</strong></p>
+            <p class="brand-kicker">Roster-driven · bilateral scheduling</p>
+            <h1>Intralink <span class="brand-title-sub font-medium">GTM Launchpad</span></h1>
+            <p id="brandDesc">Set your day, slot length, and rooms — then load a roster to build the grid.</p>
           </div>
         </div>
         <div class="header-actions no-print">
-          <button type="button" class="btn-ghost" id="btnTheme" aria-label="Toggle light or dark theme">Theme</button>
           <button type="button" class="btn-ghost" id="btnCopy">Copy TSV</button>
           <div class="header-export-scope">
             <label class="export-scope-label" for="exportScope">Handout &amp; TSV for</label>
@@ -639,12 +738,51 @@
     </header>
 
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,20rem)_1fr] lg:items-start">
-      <aside class="panel no-print" aria-label="Sectors, corporate delay, and coverage warnings">
+      <aside class="panel no-print" aria-label="Event setup, roster, sectors, pins, and delay">
         <div class="panel-head aside-panel-head">
           <span class="tag" id="savedPill" style="margin:0;opacity:0.55;transition:opacity 0.2s;">Saved</span>
         </div>
         <div class="panel-body">
           <div class="warn-banner no-print mb-3" id="covWarn" hidden aria-live="polite"></div>
+          <div class="warn-banner no-print mb-3" id="eventWarn" hidden aria-live="polite"></div>
+          <div class="warn-banner no-print mb-3" id="pinWarn" hidden aria-live="polite"></div>
+
+          <div class="step">
+            <h3>Event setup</h3>
+            <p class="hint">Day window, meeting length, and how many meetings can run at once (rooms / tables). Max 24 time slots × 20 rooms.</p>
+            <div class="delay-grid" style="margin-top:0.5rem;">
+              <label class="delay-label" for="dayStart">Day start</label>
+              <label class="delay-label" for="dayEnd">Day end</label>
+              <input type="time" id="dayStart" class="delay-select" value="10:00" autocomplete="off">
+              <input type="time" id="dayEnd" class="delay-select" value="16:00" autocomplete="off">
+              <label class="delay-label" for="slotMinutes" style="grid-column: 1 / -1;">Slot length (each meeting)</label>
+              <select id="slotMinutes" class="delay-select" style="grid-column: 1 / -1;" aria-label="Meeting slot length in minutes">
+                <option value="15">15 min</option>
+                <option value="30">30 min</option>
+                <option value="45">45 min</option>
+                <option value="60" selected>60 min</option>
+              </select>
+            </div>
+            <div style="margin-top:0.85rem;">
+              <label class="delay-label" for="tableCount">Parallel rooms</label>
+              <p class="hint" style="margin:0.2rem 0 0.4rem;font-size:0.75rem;">Same as “tables”: one column per room in the grid (1–20).</p>
+              <select id="tableCount" class="delay-select" aria-label="Number of parallel meeting rooms"></select>
+            </div>
+          </div>
+
+          <div class="step">
+            <h3>Roster</h3>
+            <p class="hint">CSV, JSON, or Excel (<code>.xlsx</code> / <code>.xls</code>): first sheet, columns <code>name</code>, <code>type</code> (Corp or Startup), <code>sector</code>. Max 20 per side. JSON or Excel may include optional <code>id</code> per row.</p>
+            <div class="flex flex-wrap gap-2 mt-2">
+              <label class="btn btn-ghost cursor-pointer" style="margin:0;">
+                <input type="file" id="rosterFile" class="sr-only" accept=".csv,.json,.xlsx,.xls,text/csv,application/json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
+                Upload file
+              </label>
+              <button type="button" class="btn-ghost" id="btnTemplate">Download template</button>
+              <button type="button" class="btn-ghost" id="btnRestoreDemo">Restore demo roster</button>
+            </div>
+            <p class="hint text-[var(--issue)] mt-2" id="rosterErr" hidden></p>
+          </div>
 
           <div class="step">
             <h3>Sector tags</h3>
@@ -653,43 +791,44 @@
           </div>
 
           <div class="step">
+            <h3>Pinned meetings <span class="text-[var(--muted)] font-normal">(human in the loop)</span></h3>
+            <p class="hint">Lock in who meets whom (e.g. <strong>Toyota Next</strong> with <strong>QuickCharge</strong>). You only pick the pair; <strong>time and room are assigned</strong> by the tool. Other empty slots are filled as usual. Pinned pairs must share a sector.</p>
+            <div id="pinnedRows" class="flex flex-col gap-2 mt-2"></div>
+            <button type="button" class="btn-ghost mt-2" id="btnAddPin">Add pinned pair</button>
+          </div>
+
+          <div class="step">
             <h3>Time management · Corporate delay</h3>
-            <p class="hint">Same idea as traffic or a late flight: pick <strong>any corporate</strong> and the <strong>earliest hour</strong> they can take a meeting (slot start time). Until then they are blocked; the grid reflows for everyone else. Defaults match the brief example: <strong>Toyota Next</strong> from <strong>13:00</strong>.</p>
+            <p class="hint">Pick a corporate and the <strong>earliest clock time</strong> their meetings may <em>start</em> (compared to each slot’s start). Until then they are blocked.</p>
             <div class="delay-panel">
               <div class="toggle-row">
                 <input type="checkbox" id="delayEnabled" autocomplete="off">
-                <label for="delayEnabled">Apply delay (no meetings for that corporate in hours <strong>before</strong> the chosen start)</label>
+                <label for="delayEnabled">Apply delay (no meetings for that corporate before the chosen time)</label>
               </div>
               <div class="delay-grid">
                 <label class="delay-label" for="delayCorpId">Corporate</label>
-                <label class="delay-label" for="delayFromHour">Earliest slot</label>
+                <label class="delay-label" for="delayFromTime">Earliest start</label>
                 <select id="delayCorpId" class="delay-select" aria-label="Corporate subject to delay"></select>
-                <select id="delayFromHour" class="delay-select" aria-label="Earliest hour this corporate can meet"></select>
+                <input type="time" id="delayFromTime" class="delay-select" value="13:00" autocomplete="off" aria-label="Earliest meeting start time for delayed corporate">
               </div>
             </div>
           </div>
 
           <details class="help">
             <summary>Official rules</summary>
-            <p style="margin:0.5rem 0 0;"><strong>Sector match:</strong> startups only meet corporates in the same sector. <strong>No collisions:</strong> a corporate cannot appear in both rooms in the same hour. <strong>Capacity:</strong> each startup gets at least one 1-hour meeting when the sector graph allows it. <strong>Corporate delay:</strong> optionally block one corporate before a chosen hour (e.g. traffic).</p>
+            <p style="margin:0.5rem 0 0;"><strong>Sector match:</strong> startups only meet corporates in the same sector. <strong>No collisions:</strong> the same corporate or startup cannot appear in two tables in the same time slot. <strong>Capacity:</strong> each startup gets at least one meeting in an open slot when the sector graph allows it. <strong>Pinned pairs</strong> are placed first. <strong>Corporate delay:</strong> optionally block one corporate before a chosen time.</p>
           </details>
         </div>
       </aside>
 
       <section class="panel panel-lg no-print">
         <div class="panel-head">
-          <h2>Working calendar · Rooms A &amp; B</h2>
-          <span class="no-print" style="font-size:0.75rem;color:var(--muted);" id="genStamp"></span>
+          <h2 id="scheduleTitle">Working calendar</h2>
+          <span class="no-print gen-stamp" id="genStamp"></span>
         </div>
         <div class="table-wrap">
-          <table class="schedule" role="grid" aria-label="Delegation schedule">
-            <thead>
-              <tr>
-                <th scope="col">Time</th>
-                <th scope="col">Room A</th>
-                <th scope="col">Room B</th>
-              </tr>
-            </thead>
+          <table id="scheduleTable" class="schedule" role="grid" aria-label="Delegation schedule">
+            <thead id="scheduleThead"></thead>
             <tbody id="scheduleBody"></tbody>
           </table>
         </div>
@@ -737,8 +876,8 @@
     button[type="button"].btn-ghost:hover,
     button[type="button"].btn:hover:not(.btn-primary),
     .btn:hover:not(.btn-primary) {
-      background: var(--surface);
-      border-color: rgba(255, 255, 255, 0.22);
+      background: var(--btn-ghost-hover-bg);
+      border-color: var(--btn-ghost-hover-border);
     }
 
     button[type="button"].btn-ghost:active,
@@ -768,29 +907,44 @@
     }
 
     .btn-ghost {
-      background: rgba(255, 255, 255, 0.06);
-      border-color: rgba(255, 255, 255, 0.18);
+      background: var(--btn-ghost-bg);
+      border-color: var(--btn-ghost-border);
     }
 
-    [data-theme="light"] .btn-ghost {
-      background: rgba(15, 20, 25, 0.04);
-      border-color: rgba(15, 20, 25, 0.14);
+    /* Hero header: white pill primary (navy label) + frosted ghost — matches Intralink CTAs */
+    .app-header-surface .btn-primary {
+      background: #fff;
+      color: var(--ink);
     }
 
-    [data-theme="light"] .btn-ghost:hover,
-    [data-theme="light"] .btn:hover:not(.btn-primary) {
-      background: rgba(15, 20, 25, 0.07);
-      border-color: rgba(15, 20, 25, 0.2);
+    .app-header-surface .btn-primary:hover {
+      filter: brightness(0.96);
+    }
+
+    .app-header-surface .btn-ghost,
+    .app-header-surface label.btn {
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.42);
+      color: #fff;
+    }
+
+    .app-header-surface button.btn-ghost:hover,
+    .app-header-surface label.btn:hover:not(.btn-primary) {
+      background: rgba(255, 255, 255, 0.26);
+      border-color: rgba(255, 255, 255, 0.55);
     }
   </style>
 
   <script>
 (function () {
   const SECTORS = ['Automotive', 'Electronics', 'Energy'];
-  const STORAGE_KEY = 'launchpad-gtm-v4';
-  const TIMES = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00'];
+  const STORAGE_KEY = 'launchpad-gtm-v5';
+  const LEGACY_STORAGE_KEY = 'launchpad-gtm-v4';
+  const MAX_PER_SIDE = 20;
+  const MAX_SLOTS = 24;
+  const MAX_TABLES = 20;
 
-  /** Analyst roster from Participants (1).xlsx — Sony & SeaPower sectors are wrong per brief; use corrections. */
+  /** Demo seed only — not used to validate saved rosters. */
   const DEFAULT_PARTICIPANTS = [
     { id: 'C1', name: 'Toyota Next', sector: 'Automotive', type: 'Corp' },
     { id: 'C2', name: 'Panasonic Energy', sector: 'Electronics', type: 'Corp' },
@@ -809,87 +963,372 @@
     { id: 'S10', name: 'SeaPower', sector: 'Electronics', type: 'Startup' }
   ];
 
+  function defaultEventConfig() {
+    return {
+      dayStart: '10:00',
+      dayEnd: '16:00',
+      slotMinutes: 60,
+      tableCount: 2
+    };
+  }
+
   let participants = JSON.parse(JSON.stringify(DEFAULT_PARTICIPANTS));
+  let eventConfig = defaultEventConfig();
+  /** @type {Array<{ startupId: string, corporateId: string }>} */
+  let fixedPairings = [];
   let delayEnabled = false;
-  /** Corporate id — default C1 matches “Toyota from 13:00” brief example */
   let delayCorpId = 'C1';
-  /** Earliest slot-start hour (10…16) where this corporate may appear; hours strictly before are blocked */
-  let delayFromHour = 13;
-  /** @type {{ rows: Array<{time:string,a:any,b:any}>, uncovered: string[] } | null} */
+  /** HH:MM — earliest slot start for delayed corporate */
+  let delayFromTime = '13:00';
+  /** @type {{ rows: Array<{ time: string, cells: Array<any> }>, uncovered: string[], pinFailures: string[] } | null} */
   let lastPlan = null;
+
   const els = {
     scheduleBody: document.getElementById('scheduleBody'),
+    scheduleThead: document.getElementById('scheduleThead'),
+    scheduleTable: document.getElementById('scheduleTable'),
+    scheduleTitle: document.getElementById('scheduleTitle'),
+    brandDesc: document.getElementById('brandDesc'),
     sectorEditors: document.getElementById('sectorEditors'),
     delayEnabled: document.getElementById('delayEnabled'),
     delayCorpId: document.getElementById('delayCorpId'),
-    delayFromHour: document.getElementById('delayFromHour'),
+    delayFromTime: document.getElementById('delayFromTime'),
+    dayStart: document.getElementById('dayStart'),
+    dayEnd: document.getElementById('dayEnd'),
+    slotMinutes: document.getElementById('slotMinutes'),
+    tableCount: document.getElementById('tableCount'),
     covWarn: document.getElementById('covWarn'),
+    eventWarn: document.getElementById('eventWarn'),
+    pinWarn: document.getElementById('pinWarn'),
     exportScope: document.getElementById('exportScope'),
     printHandout: document.getElementById('printHandout'),
     genStamp: document.getElementById('genStamp'),
     toast: document.getElementById('toast'),
     btnPrint: document.getElementById('btnPrint'),
     btnCopy: document.getElementById('btnCopy'),
-    btnTheme: document.getElementById('btnTheme'),
-    savedPill: document.getElementById('savedPill')
+    savedPill: document.getElementById('savedPill'),
+    rosterFile: document.getElementById('rosterFile'),
+    rosterErr: document.getElementById('rosterErr'),
+    btnTemplate: document.getElementById('btnTemplate'),
+    btnRestoreDemo: document.getElementById('btnRestoreDemo'),
+    pinnedRows: document.getElementById('pinnedRows'),
+    btnAddPin: document.getElementById('btnAddPin')
   };
 
-  function participantSetOk(arr) {
-    if (!Array.isArray(arr) || arr.length !== DEFAULT_PARTICIPANTS.length) return false;
-    const seen = new Set();
-    for (const p of arr) {
-      if (!p || !p.id || seen.has(p.id)) return false;
-      if (!DEFAULT_PARTICIPANTS.some((d) => d.id === p.id)) return false;
-      seen.add(p.id);
-    }
-    return seen.size === DEFAULT_PARTICIPANTS.length;
+  function timeToMinutes(t) {
+    const parts = String(t || '0:0').trim().split(':');
+    const h = parseInt(parts[0], 10) || 0;
+    const m = parseInt(parts[1], 10) || 0;
+    return h * 60 + m;
   }
 
-  function load() {
+  function minutesToTime(min) {
+    min = ((Math.round(min) % 1440) + 1440) % 1440;
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+  }
+
+  function buildSlotTimes(dayStart, dayEnd, slotMinutes) {
+    const sm = parseInt(slotMinutes, 10) || 60;
+    if (sm < 1) return [];
+    let start = timeToMinutes(dayStart);
+    let end = timeToMinutes(dayEnd);
+    if (end <= start) return [];
+    const out = [];
+    for (let t = start; t + sm <= end && out.length < MAX_SLOTS; t += sm) {
+      out.push(minutesToTime(t));
+    }
+    return out;
+  }
+
+  function getSlotTimes() {
+    return buildSlotTimes(eventConfig.dayStart, eventConfig.dayEnd, eventConfig.slotMinutes);
+  }
+
+  function roomLabel(roomIndex) {
+    const R = Math.min(MAX_TABLES, Math.max(1, eventConfig.tableCount || 1));
+    if (R === 2 && roomIndex === 0) return 'Room A';
+    if (R === 2 && roomIndex === 1) return 'Room B';
+    return 'Table ' + (roomIndex + 1);
+  }
+
+  function readEventFromDom() {
+    eventConfig.dayStart = els.dayStart.value || '09:00';
+    eventConfig.dayEnd = els.dayEnd.value || '17:00';
+    eventConfig.slotMinutes = parseInt(els.slotMinutes.value, 10) || 60;
+    eventConfig.tableCount = Math.min(MAX_TABLES, Math.max(1, parseInt(els.tableCount.value, 10) || 1));
+  }
+
+  function applyEventToDom() {
+    els.dayStart.value = eventConfig.dayStart || '10:00';
+    els.dayEnd.value = eventConfig.dayEnd || '16:00';
+    els.slotMinutes.value = String([15, 30, 45, 60].includes(eventConfig.slotMinutes) ? eventConfig.slotMinutes : 60);
+    els.tableCount.value = String(Math.min(MAX_TABLES, Math.max(1, eventConfig.tableCount || 2)));
+  }
+
+  /** Fills the rooms dropdown once (1–20). */
+  function populateTableCountSelect() {
+    const sel = els.tableCount;
+    if (sel.options.length >= MAX_TABLES) return;
+    sel.innerHTML = '';
+    for (let n = 1; n <= MAX_TABLES; n++) {
+      const opt = document.createElement('option');
+      opt.value = String(n);
+      opt.textContent = n === 1 ? '1 room' : n + ' rooms';
+      sel.appendChild(opt);
+    }
+  }
+
+  function allSectorOptions() {
+    const set = new Set(SECTORS);
+    for (const p of participants) {
+      if (p.sector && String(p.sector).trim()) set.add(String(p.sector).trim());
+    }
+    return Array.from(set);
+  }
+
+  function normalizeType(raw) {
+    const s = String(raw || '').trim().toLowerCase();
+    if (s === 'corp' || s === 'corporate' || s === 'corporates') return 'Corp';
+    if (s === 'startup' || s === 'startups' || s === 'su') return 'Startup';
+    return '';
+  }
+
+  /**
+   * Persist only after validation passes (see validateRoster).
+   * @param {any[]} arr
+   */
+  function validateRoster(arr) {
+    const errors = [];
+    if (!Array.isArray(arr) || arr.length === 0) {
+      errors.push('Roster is empty.');
+      return { ok: false, errors };
+    }
+    const seen = new Set();
+    let nCorp = 0;
+    let nSu = 0;
+    for (const p of arr) {
+      if (!p || typeof p.id !== 'string' || !p.id.trim()) {
+        errors.push('Every row needs a non-empty id after normalization.');
+        continue;
+      }
+      const id = p.id.trim();
+      if (seen.has(id)) errors.push('Duplicate id: ' + id);
+      seen.add(id);
+      const name = typeof p.name === 'string' ? p.name.trim() : '';
+      const sector = typeof p.sector === 'string' ? p.sector.trim() : '';
+      if (!name) errors.push('Empty name for id ' + id);
+      if (!sector) errors.push('Empty sector for ' + (name || id));
+      if (p.type !== 'Corp' && p.type !== 'Startup') {
+        errors.push('Invalid type for ' + (name || id));
+        continue;
+      }
+      if (p.type === 'Corp') nCorp++;
+      if (p.type === 'Startup') nSu++;
+    }
+    if (nCorp < 1) errors.push('Need at least one corporate.');
+    if (nSu < 1) errors.push('Need at least one startup.');
+    if (nCorp > MAX_PER_SIDE) errors.push('Too many corporates (max ' + MAX_PER_SIDE + ').');
+    if (nSu > MAX_PER_SIDE) errors.push('Too many startups (max ' + MAX_PER_SIDE + ').');
+    return { ok: errors.length === 0, errors };
+  }
+
+  function assignIdsFromRows(rows) {
+    let nC = 0;
+    let nS = 0;
+    const out = [];
+    const used = new Set();
+    for (const raw of rows) {
+      const type = normalizeType(raw.type);
+      if (!type) continue;
+      let id = typeof raw.id === 'string' && raw.id.trim() ? raw.id.trim() : '';
+      if (!id) {
+        id = type === 'Corp' ? 'C' + (++nC) : 'S' + (++nS);
+        while (used.has(id) || out.some((x) => x.id === id)) {
+          id = type === 'Corp' ? 'C' + (++nC) : 'S' + (++nS);
+        }
+      }
+      used.add(id);
+      out.push({
+        id,
+        name: String(raw.name == null ? '' : raw.name).trim(),
+        sector: String(raw.sector == null ? '' : raw.sector).trim(),
+        type
+      });
+    }
+    return out;
+  }
+
+  function parseCSV(text) {
+    const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    if (!lines.length) throw new Error('Empty CSV');
+    const header = lines[0].split(',').map((h) => h.trim().toLowerCase());
+    const ix = (name) => header.indexOf(name);
+    const iName = ix('name');
+    const iType = ix('type');
+    const iSector = ix('sector');
+    if (iName < 0 || iType < 0 || iSector < 0) {
+      throw new Error('CSV header must include: name, type, sector');
+    }
+    const rows = [];
+    for (let li = 1; li < lines.length; li++) {
+      const cells = lines[li].split(',').map((c) => c.trim().replace(/^"|"$/g, ''));
+      rows.push({
+        name: cells[iName],
+        type: cells[iType],
+        sector: cells[iSector]
+      });
+    }
+    return assignIdsFromRows(rows);
+  }
+
+  function parseJSONRoster(text) {
+    const data = JSON.parse(text);
+    const arr = Array.isArray(data) ? data : data.participants;
+    if (!Array.isArray(arr)) throw new Error('JSON must be an array or { participants: [] }');
+    const rows = arr.map((row) => ({
+      id: row.id,
+      name: row.name,
+      type: row.type,
+      sector: row.sector
+    }));
+    return assignIdsFromRows(rows);
+  }
+
+  function parseXLSX(buf) {
+    const XLSX_ = typeof XLSX !== 'undefined' ? XLSX : typeof self !== 'undefined' ? self.XLSX : null;
+    if (!XLSX_ || typeof XLSX_.read !== 'function') {
+      throw new Error('Spreadsheet library did not load; check your network and refresh the page.');
+    }
+    const wb = XLSX_.read(buf, { type: 'array' });
+    if (!wb.SheetNames || !wb.SheetNames.length) throw new Error('Empty spreadsheet');
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX_.utils.sheet_to_json(ws, { defval: '', raw: false });
+    if (!rows.length) throw new Error('Empty spreadsheet (first sheet)');
+    const normKey = (k) => String(k == null ? '' : k).trim().toLowerCase();
+    const keys = Object.keys(rows[0]);
+    const findCol = (want) => {
+      const w = want.toLowerCase();
+      for (let i = 0; i < keys.length; i++) {
+        if (normKey(keys[i]) === w) return keys[i];
+      }
+      return null;
+    };
+    const kName = findCol('name');
+    const kType = findCol('type');
+    const kSector = findCol('sector');
+    const kId = findCol('id');
+    if (!kName || !kType || !kSector) {
+      throw new Error('Spreadsheet first sheet must include columns: name, type, sector');
+    }
+    const mapped = rows.map((row) => ({
+      id: kId ? String(row[kId] == null ? '' : row[kId]).trim() : undefined,
+      name: row[kName],
+      type: row[kType],
+      sector: row[kSector]
+    }));
+    return assignIdsFromRows(mapped);
+  }
+
+  function tryMigrateFromV4() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      if (localStorage.getItem(STORAGE_KEY)) return;
+      const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
       if (!raw) return;
       const data = JSON.parse(raw);
-      if (Array.isArray(data.participants)) {
-        const next = data.participants.map((p) => {
-          const def = DEFAULT_PARTICIPANTS.find((d) => d.id === p.id);
-          const sector = SECTORS.includes(p.sector) ? p.sector : (def && def.sector) || SECTORS[0];
-          return {
-            id: p.id,
-            name: typeof p.name === 'string' ? p.name : (def && def.name) || String(p.id),
-            sector,
-            type: p.type === 'Corp' || p.type === 'Startup' ? p.type : (def && def.type) || 'Startup'
-          };
-        });
-        if (participantSetOk(next)) participants = next;
-      }
-      if (typeof data.delayEnabled === 'boolean') {
-        delayEnabled = data.delayEnabled;
-        if (typeof data.delayCorpId === 'string' && participants.some((p) => p.id === data.delayCorpId && p.type === 'Corp')) {
-          delayCorpId = data.delayCorpId;
-        }
-        const h = parseInt(data.delayFromHour, 10);
-        if (!isNaN(h) && h >= 10 && h <= 16) delayFromHour = h;
-      } else if (typeof data.isToyotaDelayed === 'boolean') {
-        delayEnabled = data.isToyotaDelayed;
-        delayCorpId = 'C1';
-        delayFromHour = 13;
-      }
-      if (data.theme === 'light' || data.theme === 'dark') {
-        document.documentElement.setAttribute('data-theme', data.theme);
-      }
+      if (!Array.isArray(data.participants)) return;
+      const next = data.participants
+        .map((p) => ({
+          id: String(p.id || ''),
+          name: typeof p.name === 'string' ? p.name : String(p.id),
+          sector: typeof p.sector === 'string' && p.sector.trim() ? p.sector.trim() : SECTORS[0],
+          type: p.type === 'Corp' || p.type === 'Startup' ? p.type : 'Startup'
+        }))
+        .filter((p) => p.id);
+      const v = validateRoster(next);
+      if (!v.ok) return;
+      const payload = {
+        participants: next,
+        eventConfig: defaultEventConfig(),
+        fixedPairings: [],
+        delayEnabled: !!data.delayEnabled || !!data.isToyotaDelayed,
+        delayCorpId: typeof data.delayCorpId === 'string' ? data.delayCorpId : 'C1',
+        delayFromTime: '13:00'
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     } catch (_) { /* ignore */ }
   }
 
+  function load() {
+    tryMigrateFromV4();
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      participants = JSON.parse(JSON.stringify(DEFAULT_PARTICIPANTS));
+      eventConfig = defaultEventConfig();
+      fixedPairings = [];
+      delayEnabled = false;
+      delayCorpId = 'C1';
+      delayFromTime = '13:00';
+      return;
+    }
+    const data = JSON.parse(raw);
+    if (Array.isArray(data.participants)) {
+      const next = data.participants.map((p) => ({
+        id: String(p.id || '').trim(),
+        name: typeof p.name === 'string' ? p.name.trim() : String(p.id),
+        sector: typeof p.sector === 'string' && p.sector.trim() ? p.sector.trim() : SECTORS[0],
+        type: p.type === 'Corp' || p.type === 'Startup' ? p.type : 'Startup'
+      }));
+      const v = validateRoster(next);
+      if (v.ok) participants = next;
+      else {
+        participants = JSON.parse(JSON.stringify(DEFAULT_PARTICIPANTS));
+        showRosterErr('Saved roster was invalid; restored demo. ' + v.errors[0]);
+      }
+    }
+    if (data.eventConfig && typeof data.eventConfig === 'object') {
+      eventConfig = {
+        dayStart: data.eventConfig.dayStart || defaultEventConfig().dayStart,
+        dayEnd: data.eventConfig.dayEnd || defaultEventConfig().dayEnd,
+        slotMinutes: [15, 30, 45, 60].includes(parseInt(data.eventConfig.slotMinutes, 10))
+          ? parseInt(data.eventConfig.slotMinutes, 10)
+          : 60,
+        tableCount: Math.min(MAX_TABLES, Math.max(1, parseInt(data.eventConfig.tableCount, 10) || 2))
+      };
+    }
+    if (Array.isArray(data.fixedPairings)) {
+      fixedPairings = data.fixedPairings
+        .filter((x) => x && typeof x.startupId === 'string' && typeof x.corporateId === 'string')
+        .map((x) => ({ startupId: x.startupId, corporateId: x.corporateId }));
+    }
+    if (typeof data.delayEnabled === 'boolean') delayEnabled = data.delayEnabled;
+    if (typeof data.delayCorpId === 'string' && participants.some((p) => p.id === data.delayCorpId && p.type === 'Corp')) {
+      delayCorpId = data.delayCorpId;
+    }
+    if (typeof data.delayFromTime === 'string' && /^\d{2}:\d{2}$/.test(data.delayFromTime)) {
+      delayFromTime = data.delayFromTime;
+    } else if (typeof data.delayFromHour === 'number' && !isNaN(data.delayFromHour)) {
+      delayFromTime = String(data.delayFromHour).padStart(2, '0') + ':00';
+    }
+  }
+
   function save() {
-    const theme = document.documentElement.getAttribute('data-theme') || 'dark';
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      participants,
-      delayEnabled,
-      delayCorpId,
-      delayFromHour,
-      theme
-    }));
+    readEventFromDom();
+    delayFromTime = els.delayFromTime.value || delayFromTime;
+    const v = validateRoster(participants);
+    if (!v.ok) return;
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        participants,
+        eventConfig,
+        fixedPairings,
+        delayEnabled,
+        delayCorpId,
+        delayFromTime
+      })
+    );
     flashSaved();
   }
 
@@ -903,7 +1342,9 @@
     els.savedPill.textContent = 'Saved';
     els.savedPill.style.opacity = '1';
     clearTimeout(flashSaved._t);
-    flashSaved._t = setTimeout(() => { els.savedPill.style.opacity = '0.65'; }, 800);
+    flashSaved._t = setTimeout(() => {
+      els.savedPill.style.opacity = '0.65';
+    }, 800);
   }
 
   function toast(msg) {
@@ -913,13 +1354,28 @@
     toast._t = setTimeout(() => els.toast.classList.remove('show'), 2200);
   }
 
-  function hourFromTime(t) {
-    return parseInt(t.split(':')[0], 10);
+  function showRosterErr(msg) {
+    if (!msg) {
+      els.rosterErr.hidden = true;
+      els.rosterErr.textContent = '';
+      return;
+    }
+    els.rosterErr.hidden = false;
+    els.rosterErr.textContent = msg;
   }
 
-  function corpAllowedAt(c, hour) {
-    if (delayEnabled && c.id === delayCorpId && hour < delayFromHour) return false;
-    return true;
+  function prunePins() {
+    fixedPairings = fixedPairings.filter(
+      (p) =>
+        participants.some((x) => x.id === p.startupId && x.type === 'Startup') &&
+        participants.some((x) => x.id === p.corporateId && x.type === 'Corp')
+    );
+  }
+
+  function corpAllowedAt(c, slotStartMinutes) {
+    if (!delayEnabled || c.id !== delayCorpId) return true;
+    const thresh = timeToMinutes(delayFromTime);
+    return slotStartMinutes >= thresh;
   }
 
   function populateDelayCorpSelect() {
@@ -940,17 +1396,6 @@
     }
   }
 
-  function populateDelayHourSelect() {
-    const sel = els.delayFromHour;
-    sel.innerHTML = '';
-    for (let h = 10; h <= 16; h++) {
-      const opt = document.createElement('option');
-      opt.value = String(h);
-      opt.textContent = (h < 10 ? '0' : '') + h + ':00';
-      sel.appendChild(opt);
-    }
-  }
-
   function syncDelayControls() {
     els.delayEnabled.checked = delayEnabled;
     if ([...els.delayCorpId.options].some((o) => o.value === delayCorpId)) {
@@ -959,10 +1404,11 @@
       delayCorpId = els.delayCorpId.options[0].value;
       els.delayCorpId.value = delayCorpId;
     }
-    els.delayFromHour.value = String(delayFromHour);
+    els.delayFromTime.value = delayFromTime;
   }
 
   function populateExportScope() {
+    const prev = els.exportScope.value;
     const sel = els.exportScope;
     sel.innerHTML = '';
     const allOpt = document.createElement('option');
@@ -995,7 +1441,8 @@
       });
     sel.appendChild(ogCorp);
     sel.appendChild(ogSu);
-    sel.value = '__ALL__';
+    if (prev && [...sel.options].some((o) => o.value === prev)) sel.value = prev;
+    else sel.value = '__ALL__';
   }
 
   function getExportFilterPid() {
@@ -1017,7 +1464,7 @@
   function countStartupMeetings(sched, sid) {
     let n = 0;
     for (let hi = 0; hi < sched.length; hi++) {
-      for (let r = 0; r < 2; r++) {
+      for (let r = 0; r < sched[hi].length; r++) {
         const m = sched[hi][r];
         if (m && m.s.id === sid) n++;
       }
@@ -1025,14 +1472,14 @@
     return n;
   }
 
-  function startupFlexScore(s, corporates) {
+  function startupFlexScore(s, corporates, slotTimes) {
     let n = 0;
-    for (let hi = 0; hi < TIMES.length; hi++) {
-      const hour = hourFromTime(TIMES[hi]);
+    for (let hi = 0; hi < slotTimes.length; hi++) {
+      const slotMin = timeToMinutes(slotTimes[hi]);
       for (let ci = 0; ci < corporates.length; ci++) {
         const c = corporates[ci];
         if (s.sector !== c.sector) continue;
-        if (!corpAllowedAt(c, hour)) continue;
+        if (!corpAllowedAt(c, slotMin)) continue;
         n++;
       }
     }
@@ -1040,17 +1487,23 @@
   }
 
   /**
-   * Phase 1: each startup gets ≥1 meeting when mathematically possible.
-   * Phase 2: fill empty slots; no double-book (same corp or startup in two rooms same hour).
+   * Pins first, then phase 1 (≥1 meeting per startup), then phase 2 fill.
    */
   function computeSchedule() {
+    const slotTimes = getSlotTimes();
+    if (!slotTimes.length) {
+      return { rows: [], uncovered: [], pinFailures: [] };
+    }
+    const R = Math.min(MAX_TABLES, Math.max(1, eventConfig.tableCount || 1));
     const startups = participants.filter((p) => p.type === 'Startup');
     const corporates = participants.filter((p) => p.type === 'Corp');
-    const n = TIMES.length;
+    const n = slotTimes.length;
+    const pinFailures = [];
+
     /** @type {Array<Array<{s:any,c:any}|null>>} */
-    const sched = TIMES.map(() => [null, null]);
-    const suHour = TIMES.map(() => new Set());
-    const coHour = TIMES.map(() => new Set());
+    const sched = slotTimes.map(() => Array(R).fill(null));
+    const suHour = slotTimes.map(() => new Set());
+    const coHour = slotTimes.map(() => new Set());
     const pairCounts = new Map();
 
     function place(hi, room, m) {
@@ -1061,9 +1514,37 @@
       pairCounts.set(k, (pairCounts.get(k) || 0) + 1);
     }
 
+    for (const pin of fixedPairings) {
+      if (!pin.startupId || !pin.corporateId) continue;
+      const s = startups.find((x) => x.id === pin.startupId);
+      const c = corporates.find((x) => x.id === pin.corporateId);
+      if (!s || !c) continue;
+      if (s.sector !== c.sector) {
+        pinFailures.push(s.name + ' × ' + c.name + ': sectors do not match.');
+        continue;
+      }
+      let placed = false;
+      for (let hi = 0; hi < n && !placed; hi++) {
+        const slotMin = timeToMinutes(slotTimes[hi]);
+        if (!corpAllowedAt(c, slotMin)) continue;
+        if (suHour[hi].has(s.id)) continue;
+        if (coHour[hi].has(c.id)) continue;
+        for (let room = 0; room < R; room++) {
+          if (sched[hi][room] === null) {
+            place(hi, room, { s: s, c: c });
+            placed = true;
+            break;
+          }
+        }
+      }
+      if (!placed) {
+        pinFailures.push(s.name + ' × ' + c.name + ': no free slot (delay, collisions, or grid full).');
+      }
+    }
+
     const orderedStartups = startups.slice().sort((a, b) => {
-      const fa = startupFlexScore(a, corporates);
-      const fb = startupFlexScore(b, corporates);
+      const fa = startupFlexScore(a, corporates, slotTimes);
+      const fb = startupFlexScore(b, corporates, slotTimes);
       if (fa !== fb) return fa - fb;
       return a.id.localeCompare(b.id);
     });
@@ -1071,12 +1552,14 @@
     for (const s of orderedStartups) {
       if (countStartupMeetings(sched, s.id) >= 1) continue;
       outer: for (let hi = 0; hi < n; hi++) {
-        const hour = hourFromTime(TIMES[hi]);
+        const slotMin = timeToMinutes(slotTimes[hi]);
         if (suHour[hi].has(s.id)) continue;
-        const corps = corporates.filter((c) => s.sector === c.sector && corpAllowedAt(c, hour) && !coHour[hi].has(c.id));
+        const corps = corporates.filter(
+          (c) => s.sector === c.sector && corpAllowedAt(c, slotMin) && !coHour[hi].has(c.id)
+        );
         corps.sort((a, b) => a.id.localeCompare(b.id));
         for (const c of corps) {
-          for (let room = 0; room < 2; room++) {
+          for (let room = 0; room < R; room++) {
             if (sched[hi][room] === null) {
               place(hi, room, { s: s, c: c });
               break outer;
@@ -1087,15 +1570,15 @@
     }
 
     for (let hi = 0; hi < n; hi++) {
-      const hour = hourFromTime(TIMES[hi]);
-      for (let room = 0; room < 2; room++) {
+      const slotMin = timeToMinutes(slotTimes[hi]);
+      for (let room = 0; room < R; room++) {
         if (sched[hi][room] !== null) continue;
         const candidates = [];
         for (const s of startups) {
           if (suHour[hi].has(s.id)) continue;
           for (const c of corporates) {
             if (s.sector !== c.sector) continue;
-            if (!corpAllowedAt(c, hour)) continue;
+            if (!corpAllowedAt(c, slotMin)) continue;
             if (coHour[hi].has(c.id)) continue;
             candidates.push({ s: s, c: c });
           }
@@ -1116,20 +1599,22 @@
       .filter((s) => countStartupMeetings(sched, s.id) === 0)
       .map((s) => s.name);
 
-    const rows = TIMES.map((t, i) => ({
+    const rows = slotTimes.map((t, i) => ({
       time: t,
-      a: sched[i][0],
-      b: sched[i][1]
+      cells: sched[i]
     }));
 
-    return { rows: rows, uncovered: uncovered };
+    return { rows: rows, uncovered: uncovered, pinFailures: pinFailures };
   }
 
   function renderSectorEditors() {
     els.sectorEditors.innerHTML = '';
+    const opts = allSectorOptions();
+    const nC = participants.filter((p) => p.type === 'Corp').length;
+    const nS = participants.filter((p) => p.type === 'Startup').length;
     const groups = [
-      { label: 'Corporates (5)', list: participants.filter((p) => p.type === 'Corp') },
-      { label: 'Startups (10)', list: participants.filter((p) => p.type === 'Startup') }
+      { label: 'Corporates (' + nC + ')', list: participants.filter((p) => p.type === 'Corp') },
+      { label: 'Startups (' + nS + ')', list: participants.filter((p) => p.type === 'Startup') }
     ];
     for (const g of groups) {
       const gl = document.createElement('div');
@@ -1144,7 +1629,7 @@
         label.textContent = p.name;
         const sel = document.createElement('select');
         sel.setAttribute('aria-label', 'Business category for ' + p.name);
-        for (const sec of SECTORS) {
+        for (const sec of opts) {
           const opt = document.createElement('option');
           opt.value = sec;
           opt.textContent = sec;
@@ -1153,6 +1638,7 @@
         }
         sel.addEventListener('change', () => {
           p.sector = sel.value;
+          renderPinnedEditors();
           renderSchedule();
           scheduleSave();
         });
@@ -1163,15 +1649,84 @@
     }
   }
 
+  function renderPinnedEditors() {
+    const startups = participants.filter((p) => p.type === 'Startup').slice().sort((a, b) => a.name.localeCompare(b.name));
+    const corporates = participants.filter((p) => p.type === 'Corp').slice().sort((a, b) => a.name.localeCompare(b.name));
+    els.pinnedRows.innerHTML = '';
+    fixedPairings.forEach((pin, idx) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'pin-row';
+      wrap.dataset.idx = String(idx);
+      const su = document.createElement('select');
+      su.setAttribute('aria-label', 'Startup for pinned pair');
+      su.innerHTML = '<option value="">Startup…</option>';
+      for (const p of startups) {
+        const o = document.createElement('option');
+        o.value = p.id;
+        o.textContent = p.name;
+        if (p.id === pin.startupId) o.selected = true;
+        su.appendChild(o);
+      }
+      const co = document.createElement('select');
+      co.setAttribute('aria-label', 'Corporate for pinned pair');
+      co.innerHTML = '<option value="">Corporate…</option>';
+      for (const p of corporates) {
+        const o = document.createElement('option');
+        o.value = p.id;
+        o.textContent = p.name;
+        if (p.id === pin.corporateId) o.selected = true;
+        co.appendChild(o);
+      }
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'btn-pin-remove';
+      rm.textContent = '✕';
+      rm.setAttribute('aria-label', 'Remove pinned pair');
+      rm.addEventListener('click', () => {
+        fixedPairings.splice(idx, 1);
+        renderPinnedEditors();
+        renderSchedule();
+        scheduleSave();
+      });
+      su.addEventListener('change', () => {
+        pin.startupId = su.value;
+        renderSchedule();
+        scheduleSave();
+      });
+      co.addEventListener('change', () => {
+        pin.corporateId = co.value;
+        renderSchedule();
+        scheduleSave();
+      });
+      wrap.appendChild(su);
+      wrap.appendChild(co);
+      wrap.appendChild(rm);
+      els.pinnedRows.appendChild(wrap);
+    });
+  }
+
+  function addPinnedRow() {
+    fixedPairings.push({ startupId: '', corporateId: '' });
+    renderPinnedEditors();
+    renderSchedule();
+    scheduleSave();
+  }
+
   function cellHtml(meeting) {
     if (!meeting) {
       return '<span class="cell-empty">Open slot</span>';
     }
     return (
       '<div class="meet">' +
-        '<div class="s">' + escapeHtml(meeting.s.name) + '</div>' +
-        '<div class="c">with ' + escapeHtml(meeting.c.name) + '</div>' +
-        '<span class="tag">' + escapeHtml(meeting.s.sector) + '</span>' +
+      '<div class="s">' +
+      escapeHtml(meeting.s.name) +
+      '</div>' +
+      '<div class="c">with ' +
+      escapeHtml(meeting.c.name) +
+      '</div>' +
+      '<span class="tag">' +
+      escapeHtml(meeting.s.sector) +
+      '</span>' +
       '</div>'
     );
   }
@@ -1185,15 +1740,54 @@
   }
 
   function slotEndLabel(startTime) {
-    const h = hourFromTime(startTime);
-    const endH = h + 1;
-    const endLabel = (endH < 10 ? '0' : '') + endH + ':00';
-    return startTime + ' – ' + endLabel;
+    const startMin = timeToMinutes(startTime);
+    const endMin = startMin + (eventConfig.slotMinutes || 60);
+    return startTime + ' – ' + minutesToTime(endMin);
   }
 
   function fmtMeeting(m) {
     if (!m) return '—';
     return m.s.name + ' with ' + m.c.name + ' (' + m.s.sector + ')';
+  }
+
+  function scheduleMetaLine() {
+    const slotTimes = getSlotTimes();
+    const nC = participants.filter((p) => p.type === 'Corp').length;
+    const nS = participants.filter((p) => p.type === 'Startup').length;
+    const sm = eventConfig.slotMinutes || 60;
+    const R = eventConfig.tableCount;
+    const suLabel = nS === 1 ? '1 startup' : nS + ' startups';
+    const coLabel = nC === 1 ? '1 corporate' : nC + ' corporates';
+    if (!slotTimes.length) {
+      return suLabel + ' · ' + coLabel + ' · adjust day start and end to generate time slots.';
+    }
+    const nSlots = slotTimes.length;
+    const dayEnd = minutesToTime(timeToMinutes(slotTimes[nSlots - 1]) + sm);
+    const slotPhrase = nSlots === 1 ? '1 time slot' : nSlots + ' time slots';
+    const roomPhrase = R === 1 ? '1 parallel room' : R + ' parallel rooms';
+    return (
+      suLabel +
+      ' · ' +
+      coLabel +
+      ' · ' +
+      slotPhrase +
+      ' × ' +
+      roomPhrase +
+      ' · ' +
+      sm +
+      '-minute meetings · ' +
+      slotTimes[0] +
+      '–' +
+      dayEnd
+    );
+  }
+
+  function updateBrandAndTitle() {
+    readEventFromDom();
+    if (els.brandDesc) els.brandDesc.textContent = scheduleMetaLine();
+    const R = eventConfig.tableCount;
+    els.scheduleTitle.textContent =
+      R === 2 ? 'Working calendar · Rooms A & B' : 'Working calendar · ' + R + ' parallel rooms';
   }
 
   function renderPrintHandout(plan) {
@@ -1204,41 +1798,50 @@
     if (delayEnabled) {
       const dc = participants.find((p) => p.id === delayCorpId && p.type === 'Corp');
       const nm = escapeHtml(dc ? dc.name : delayCorpId);
-      const hh = delayFromHour < 10 ? '0' + delayFromHour : String(delayFromHour);
-      delayMeta = ' · ' + nm + ' delayed: meetings from ' + hh + ':00 onward';
+      delayMeta = ' · ' + nm + ' delayed: meetings from ' + escapeHtml(delayFromTime) + ' onward';
     }
+    const slotTimes = getSlotTimes();
+    const slotMeta =
+      slotTimes.length +
+      ' × ' +
+      (eventConfig.slotMinutes || 60) +
+      ' min slots, ' +
+      (slotTimes[0] || '—') +
+      '–' +
+      (slotTimes.length ? minutesToTime(timeToMinutes(slotTimes[slotTimes.length - 1]) + (eventConfig.slotMinutes || 60)) : '—');
 
     if (filter) {
       lines.push('<h1>Intralink GTM Launchpad — ' + escapeHtml(filter.name) + '</h1>');
       lines.push(
-        '<p class="meta">' +
-          'Your meetings only · Six one-hour slots, 10:00–16:00 · ' +
+        '<p class="meta">Your meetings only · ' +
+          escapeHtml(slotMeta) +
+          ' · ' +
           (filter.type === 'Corp' ? 'Corporate' : 'Startup') +
           delayMeta +
           '</p>'
       );
       lines.push('<ol>');
       let n = 0;
+      const R = Math.min(MAX_TABLES, Math.max(1, eventConfig.tableCount));
       for (const r of plan.rows) {
         const slot = slotEndLabel(r.time);
-        let m = null;
-        let room = '';
-        if (r.a && (r.a.s.id === filterId || r.a.c.id === filterId)) {
-          m = r.a;
-          room = 'Room A';
-        } else if (r.b && (r.b.s.id === filterId || r.b.c.id === filterId)) {
-          m = r.b;
-          room = 'Room B';
-        }
-        if (m) {
-          n++;
-          const partner = m.s.id === filterId ? m.c.name : m.s.name;
-          lines.push(
-            '<li><span class="ph-time">' + escapeHtml(slot) + '</span><br>' +
-              '<span class="ph-room">' + escapeHtml(room) + '</span> · With <strong>' +
-              escapeHtml(partner) + '</strong> · ' + escapeHtml(m.s.sector) +
-              '</li>'
-          );
+        for (let ri = 0; ri < R; ri++) {
+          const cell = r.cells[ri];
+          if (cell && (cell.s.id === filterId || cell.c.id === filterId)) {
+            n++;
+            const partner = cell.s.id === filterId ? cell.c.name : cell.s.name;
+            lines.push(
+              '<li><span class="ph-time">' +
+                escapeHtml(slot) +
+                '</span><br><span class="ph-room">' +
+                escapeHtml(roomLabel(ri)) +
+                '</span> · With <strong>' +
+                escapeHtml(partner) +
+                '</strong> · ' +
+                escapeHtml(cell.s.sector) +
+                '</li>'
+            );
+          }
         }
       }
       lines.push('</ol>');
@@ -1252,23 +1855,44 @@
       }
     } else {
       const nStartup = participants.filter((p) => p.type === 'Startup').length;
-      lines.push('<h1>Intralink GTM Launchpad — corrected schedule</h1>');
+      const nCorp = participants.filter((p) => p.type === 'Corp').length;
+      lines.push('<h1>Intralink GTM Launchpad — schedule</h1>');
       lines.push(
         '<p class="meta">' +
-          'Six one-hour slots, 10:00–16:00 · Rooms A &amp; B · ' +
+          escapeHtml(slotMeta) +
+          ' · ' +
           nStartup +
-          ' startups, 5 corporates' +
+          ' startups, ' +
+          nCorp +
+          ' corporates' +
           delayMeta +
           '</p>'
       );
       lines.push('<ol>');
+      const R = Math.min(MAX_TABLES, Math.max(1, eventConfig.tableCount));
       for (const r of plan.rows) {
         const slot = slotEndLabel(r.time);
-        const a = r.a ? '<span class="ph-room">Room A:</span> ' + escapeHtml(r.a.s.name) + ' / ' + escapeHtml(r.a.c.name) + ' (' + escapeHtml(r.a.s.sector) + ')' : '<span class="ph-room">Room A:</span> Open';
-        const b = r.b ? '<span class="ph-room">Room B:</span> ' + escapeHtml(r.b.s.name) + ' / ' + escapeHtml(r.b.c.name) + ' (' + escapeHtml(r.b.s.sector) + ')' : '<span class="ph-room">Room B:</span> Open';
-        lines.push(
-          '<li><span class="ph-time">' + escapeHtml(slot) + '</span><br>' + a + '<br>' + b + '</li>'
-        );
+        const parts = [];
+        for (let ri = 0; ri < R; ri++) {
+          const cell = r.cells[ri];
+          const lab = roomLabel(ri);
+          if (cell) {
+            parts.push(
+              '<span class="ph-room">' +
+                escapeHtml(lab) +
+                ':</span> ' +
+                escapeHtml(cell.s.name) +
+                ' / ' +
+                escapeHtml(cell.c.name) +
+                ' (' +
+                escapeHtml(cell.s.sector) +
+                ')'
+            );
+          } else {
+            parts.push('<span class="ph-room">' + escapeHtml(lab) + ':</span> Open');
+          }
+        }
+        lines.push('<li><span class="ph-time">' + escapeHtml(slot) + '</span><br>' + parts.join('<br>') + '</li>');
       }
       lines.push('</ol>');
       if (plan.uncovered.length) {
@@ -1282,9 +1906,46 @@
     els.printHandout.innerHTML = lines.join('');
   }
 
+  function renderScheduleHead(R) {
+    const tr = document.createElement('tr');
+    const th0 = document.createElement('th');
+    th0.scope = 'col';
+    th0.textContent = 'Time';
+    tr.appendChild(th0);
+    for (let ri = 0; ri < R; ri++) {
+      const th = document.createElement('th');
+      th.scope = 'col';
+      th.textContent = roomLabel(ri);
+      tr.appendChild(th);
+    }
+    els.scheduleThead.replaceChildren(tr);
+  }
+
   function renderSchedule() {
-    const plan = computeSchedule();
+    readEventFromDom();
+    const slotTimes = getSlotTimes();
+    if (!slotTimes.length) {
+      els.eventWarn.hidden = false;
+      els.eventWarn.textContent =
+        'No time slots for this day window and slot length. Make sure the day end is after the day start and fits at least one slot (max ' +
+        MAX_SLOTS +
+        ' slots).';
+    } else {
+      els.eventWarn.hidden = true;
+      els.eventWarn.textContent = '';
+    }
+
+    const plan = slotTimes.length ? computeSchedule() : { rows: [], uncovered: [], pinFailures: [] };
     lastPlan = plan;
+
+    if (plan.pinFailures && plan.pinFailures.length) {
+      els.pinWarn.hidden = false;
+      els.pinWarn.textContent = 'Pinned meetings: ' + plan.pinFailures.join(' ');
+    } else {
+      els.pinWarn.hidden = true;
+      els.pinWarn.textContent = '';
+    }
+
     if (plan.uncovered.length) {
       els.covWarn.hidden = false;
       els.covWarn.textContent =
@@ -1297,44 +1958,53 @@
     }
     els.genStamp.textContent = 'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+    const R = Math.min(MAX_TABLES, Math.max(1, eventConfig.tableCount || 1));
+    els.scheduleTable.classList.toggle('many-cols', R > 4);
+    renderScheduleHead(R);
+
     const frag = document.createDocumentFragment();
     for (const r of plan.rows) {
       const tr = document.createElement('tr');
-      tr.innerHTML =
-        '<th scope="row" class="time">' + escapeHtml(r.time) + '</th>' +
-        '<td class="slot">' + cellHtml(r.a) + '</td>' +
-        '<td class="slot">' + cellHtml(r.b) + '</td>';
+      const th = document.createElement('th');
+      th.scope = 'row';
+      th.className = 'time';
+      th.textContent = r.time;
+      tr.appendChild(th);
+      for (let ri = 0; ri < R; ri++) {
+        const td = document.createElement('td');
+        td.className = 'slot';
+        td.innerHTML = cellHtml(r.cells[ri]);
+        tr.appendChild(td);
+      }
       frag.appendChild(tr);
     }
     els.scheduleBody.replaceChildren(frag);
     renderPrintHandout(plan);
+    updateBrandAndTitle();
   }
 
   function scheduleToTSV() {
     const plan = lastPlan || computeSchedule();
     const pid = getExportFilterPid();
+    const R = Math.min(MAX_TABLES, Math.max(1, eventConfig.tableCount || 1));
+    const headers = ['Time slot'].concat(Array.from({ length: R }, (_, i) => roomLabel(i)));
     if (!pid) {
-      const lines = ['Time slot\tRoom A\tRoom B'];
+      const lines = [headers.join('\t')];
       for (const r of plan.rows) {
-        lines.push([slotEndLabel(r.time), fmtMeeting(r.a), fmtMeeting(r.b)].join('\t'));
+        const row = [slotEndLabel(r.time)].concat(Array.from({ length: R }, (_, i) => fmtMeeting(r.cells[i])));
+        lines.push(row.join('\t'));
       }
       return lines.join('\n');
     }
     const lines = ['Time\tRoom\tPartner\tSector'];
     for (const r of plan.rows) {
       const slot = slotEndLabel(r.time);
-      let m = null;
-      let room = '';
-      if (r.a && (r.a.s.id === pid || r.a.c.id === pid)) {
-        m = r.a;
-        room = 'Room A';
-      } else if (r.b && (r.b.s.id === pid || r.b.c.id === pid)) {
-        m = r.b;
-        room = 'Room B';
-      }
-      if (m) {
-        const partner = m.s.id === pid ? m.c.name : m.s.name;
-        lines.push([slot, room, partner, m.s.sector].join('\t'));
+      for (let ri = 0; ri < R; ri++) {
+        const cell = r.cells[ri];
+        if (cell && (cell.s.id === pid || cell.c.id === pid)) {
+          const partner = cell.s.id === pid ? cell.c.name : cell.s.name;
+          lines.push([slot, roomLabel(ri), partner, cell.s.sector].join('\t'));
+        }
       }
     }
     if (lines.length === 1) {
@@ -1342,6 +2012,109 @@
     }
     return lines.join('\n');
   }
+
+  function downloadTemplate() {
+    const csv =
+      'name,type,sector\n' +
+      'Example Corp,Corp,Automotive\n' +
+      'Example Startup,Startup,Automotive\n';
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'roster-template.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('Template downloaded');
+  }
+
+  function applyParsedRoster(next) {
+    const v = validateRoster(next);
+    if (!v.ok) {
+      showRosterErr(v.errors.join(' '));
+      toast('Roster rejected');
+      return;
+    }
+    showRosterErr('');
+    participants = next;
+    prunePins();
+    populateDelayCorpSelect();
+    populateExportScope();
+    syncDelayControls();
+    renderSectorEditors();
+    renderPinnedEditors();
+    renderSchedule();
+    scheduleSave();
+    toast('Roster loaded');
+  }
+
+  els.rosterFile.addEventListener('change', () => {
+    const f = els.rosterFile.files && els.rosterFile.files[0];
+    els.rosterFile.value = '';
+    if (!f) return;
+    const lower = f.name.toLowerCase();
+    const isSheet = lower.endsWith('.xlsx') || lower.endsWith('.xls');
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        let next;
+        if (isSheet) next = parseXLSX(reader.result);
+        else {
+          const text = String(reader.result || '').replace(/^\uFEFF/, '');
+          if (lower.endsWith('.json')) next = parseJSONRoster(text);
+          else next = parseCSV(text);
+        }
+        applyParsedRoster(next);
+      } catch (e) {
+        showRosterErr(e.message || String(e));
+        toast('Could not parse file');
+      }
+    };
+    if (isSheet) reader.readAsArrayBuffer(f);
+    else reader.readAsText(f);
+  });
+
+  els.btnTemplate.addEventListener('click', downloadTemplate);
+
+  els.btnRestoreDemo.addEventListener('click', () => {
+    participants = JSON.parse(JSON.stringify(DEFAULT_PARTICIPANTS));
+    eventConfig = defaultEventConfig();
+    fixedPairings = [];
+    delayEnabled = false;
+    delayCorpId = 'C1';
+    delayFromTime = '13:00';
+    applyEventToDom();
+    showRosterErr('');
+    prunePins();
+    populateDelayCorpSelect();
+    populateExportScope();
+    syncDelayControls();
+    renderSectorEditors();
+    renderPinnedEditors();
+    renderSchedule();
+    scheduleSave();
+    toast('Demo roster restored');
+  });
+
+  els.btnAddPin.addEventListener('click', addPinnedRow);
+
+  ['change', 'input'].forEach((ev) => {
+    els.dayStart.addEventListener(ev, () => {
+      renderSchedule();
+      scheduleSave();
+    });
+    els.dayEnd.addEventListener(ev, () => {
+      renderSchedule();
+      scheduleSave();
+    });
+    els.slotMinutes.addEventListener(ev, () => {
+      renderSchedule();
+      scheduleSave();
+    });
+    els.tableCount.addEventListener(ev, () => {
+      renderSchedule();
+      scheduleSave();
+    });
+  });
 
   els.delayEnabled.addEventListener('change', () => {
     delayEnabled = els.delayEnabled.checked;
@@ -1353,8 +2126,8 @@
     renderSchedule();
     scheduleSave();
   });
-  els.delayFromHour.addEventListener('change', () => {
-    delayFromHour = parseInt(els.delayFromHour.value, 10) || 13;
+  els.delayFromTime.addEventListener('change', () => {
+    delayFromTime = els.delayFromTime.value || '09:00';
     renderSchedule();
     scheduleSave();
   });
@@ -1376,26 +2149,18 @@
     }
   });
 
-  els.btnTheme.addEventListener('click', () => {
-    const cur = document.documentElement.getAttribute('data-theme') || 'dark';
-    const next = cur === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    scheduleSave();
-  });
-
-  if (!document.documentElement.hasAttribute('data-theme')) {
-    document.documentElement.setAttribute('data-theme', 'dark');
-  }
-
-  populateDelayHourSelect();
+  populateTableCountSelect();
   load();
+  applyEventToDom();
   populateExportScope();
   populateDelayCorpSelect();
   syncDelayControls();
   renderSectorEditors();
+  renderPinnedEditors();
   renderSchedule();
   scheduleSave();
 })();
+
   </script>
 </body>
 </html>
