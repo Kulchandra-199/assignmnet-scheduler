@@ -1,13 +1,15 @@
 <!DOCTYPE html>
+<!-- Intralink GTM Launchpad — single-file scheduler. Section markers: search "=== " (HTML) or "// ---" (JS) or "/* ---" (CSS). -->
 <html lang="en">
 <head>
+  <!-- === HEAD: meta, fonts, Tailwind CDN + inline config === -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Intralink GTM Launchpad — dynamic bilateral meeting scheduler: CSV/JSON/XLSX roster, configurable slots and tables, sector rules, pinned pairings, optional corporate delay, export.">
   <title>Intralink GTM Launchpad Scheduler</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=Lexend:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
@@ -15,17 +17,19 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Lexend', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-            display: ['Fraunces', 'Georgia', 'serif']
+            sans: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            display: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif']
           }
         }
       }
     };
   </script>
+  <!-- === STYLESHEET (main): tokens, layout, table, modal, print === -->
   <style>
+    /* --- Design tokens & global base --- */
     :root {
-      --font-display: "Fraunces", Georgia, serif;
-      --font-ui: "Lexend", system-ui, sans-serif;
+      --font-display: "Poppins", system-ui, sans-serif;
+      --font-ui: "Poppins", system-ui, sans-serif;
       /* Intralink site reference: #0089D0, #002D54, #204191, #17B9D1, #853683, #7B3F8D */
       --brand: #0089d0;
       --ink: #002d54;
@@ -72,6 +76,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    /* --- App chrome: header & brand --- */
     header.app-header {
       margin-bottom: 1.75rem;
       animation: rise 0.7s ease-out both;
@@ -83,91 +88,219 @@
     }
 
     .app-header-surface {
+      position: relative;
       display: flex;
       flex-direction: column;
       align-items: stretch;
-      gap: 1.25rem;
-      padding: 1.25rem 1.35rem;
+      gap: 0.85rem;
+      padding: 0.95rem 1.15rem;
       border-radius: var(--radius);
-      border: 1px solid rgba(0, 45, 84, 0.12);
-      background: var(--brand);
-      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background:
+        radial-gradient(120% 140% at 0% 0%, rgba(23, 185, 209, 0.35) 0%, rgba(23, 185, 209, 0) 55%),
+        radial-gradient(90% 120% at 100% 100%, rgba(32, 65, 145, 0.55) 0%, rgba(32, 65, 145, 0) 60%),
+        linear-gradient(135deg, #0089d0 0%, #0771ae 55%, #204191 100%);
+      box-shadow:
+        0 22px 48px rgba(15, 23, 42, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22);
+      overflow: hidden;
     }
 
-    .app-header-surface .brand-kicker {
-      color: rgba(255, 255, 255, 0.88);
+    .app-header-surface::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 35%);
+      border-radius: inherit;
     }
 
-    .app-header-surface .brand h1 {
+    .app-header-surface > * { position: relative; z-index: 1; }
+
+    .app-header-surface .brand-wordmark {
       color: #fff;
     }
 
-    .app-header-surface .brand-title-sub {
-      color: rgba(255, 255, 255, 0.78);
+    .app-header-surface .brand-eyebrow {
+      color: rgba(255, 255, 255, 0.82);
     }
 
-    .app-header-surface .brand p {
-      color: rgba(255, 255, 255, 0.92);
+    .app-header-surface .brand-tagline {
+      color: rgba(255, 255, 255, 0.68);
     }
 
     .app-header-surface .header-actions {
       background: rgba(0, 45, 84, 0.22);
       border-color: rgba(255, 255, 255, 0.32);
+      gap: 0.6rem 1rem;
+      row-gap: 0.5rem;
+      padding: 0.55rem 0.75rem 0.55rem 0.85rem;
+      align-items: center;
+      align-content: center;
+      /* Let the bar shrink inside the header row so the brand never clips (flex min-width:auto). */
+      min-width: 0;
+      max-width: 100%;
+      /* Wrapped rows read correctly; full pill + wrap often looks “cut off”. */
+      border-radius: var(--radius);
+      overflow: visible;
     }
 
-    .app-header-surface .export-scope-label {
-      color: rgba(255, 255, 255, 0.92);
+    /* Print handout lives on the calendar panel head (navy strip). */
+    .calendar-print-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.5rem 0.75rem;
+      min-width: 0;
+      flex-shrink: 0;
     }
 
-    .app-header-surface .export-scope-select {
-      background: #fff;
-      color: var(--ink);
-      border-color: rgba(0, 45, 84, 0.18);
+    .calendar-print-toolbar .header-export-scope {
+      gap: 0.45rem 0.65rem;
+      padding: 0.1rem 0;
+      align-items: center;
     }
 
     @media (min-width: 640px) {
+      .calendar-print-toolbar .header-export-scope {
+        border-right: 1px solid rgba(255, 255, 255, 0.22);
+        padding-right: 1rem;
+        margin-right: 0.15rem;
+      }
+    }
+
+    .calendar-print-toolbar .export-scope-label {
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .calendar-print-toolbar .export-scope-select {
+      background: #fff;
+      color: var(--ink);
+      border-color: rgba(0, 45, 84, 0.16);
+      min-height: 2.5rem;
+      padding: 0.45rem 1rem 0.45rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) inset, 0 1px 2px rgba(0, 45, 84, 0.08);
+      max-width: min(16rem, 52vw);
+    }
+
+    .app-header-tools {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.65rem;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    @media (min-width: 640px) {
+      .app-header-tools {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        flex: 1 1 auto;
+        max-width: 100%;
+      }
+
       .app-header-surface {
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
-        gap: 1.5rem;
-        padding: 1.35rem 1.5rem;
+        gap: 1rem;
+        padding: 0.75rem 1.15rem;
       }
     }
 
     .brand {
       min-width: 0;
       flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .brand-mark {
+      flex-shrink: 0;
+      width: 2.4rem;
+      height: 2.4rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 6px 14px rgba(0, 45, 84, 0.22);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    .brand-mark svg {
+      width: 1.6rem;
+      height: 1.6rem;
+      display: block;
     }
 
     .brand-copy {
       min-width: 0;
-    }
-
-    .brand-kicker {
-      margin: 0 0 0.35rem;
-      font-size: 0.65rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.11em;
-      color: var(--muted);
-    }
-
-    .brand h1 {
-      margin: 0;
-      font-family: var(--font-display);
-      font-size: clamp(1.4rem, 2.8vw, 1.85rem);
-      font-weight: 700;
-      letter-spacing: -0.03em;
+      display: flex;
+      flex-direction: column;
+      gap: 0.05rem;
       line-height: 1.15;
     }
 
-    .brand p {
-      margin: 0.55rem 0 0;
-      font-size: 0.875rem;
-      line-height: 1.55;
-      color: var(--muted);
-      max-width: 54ch;
+    .brand-eyebrow {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+
+    .brand-wordmark {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.1rem, 2.15vw, 1.4rem);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+    }
+
+    .brand-tagline {
+      font-size: 0.74rem;
+      font-weight: 400;
+      letter-spacing: 0.01em;
+    }
+
+    @media (max-width: 420px) {
+      .brand-tagline { display: none; }
+      .brand-mark { width: 2.15rem; height: 2.15rem; }
+      .brand-mark svg { width: 1.4rem; height: 1.4rem; }
+    }
+
+    .panel-head-calendar {
+      align-items: flex-start;
+      flex-wrap: wrap;
+      row-gap: 0.65rem;
+    }
+
+    .panel-head-calendar-main {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .panel-head-calendar .gen-stamp {
+      align-self: center;
+      flex-shrink: 0;
     }
 
     .header-actions {
@@ -188,18 +321,117 @@
 
     @media (min-width: 640px) {
       .header-actions {
-        flex-shrink: 0;
+        flex-shrink: 1;
         align-self: center;
         justify-content: flex-end;
         width: fit-content;
+        min-width: 0;
+        max-width: 100%;
       }
     }
 
-    /* Narrow screens: drop the “mega pill”, stack rows, full-width scope + Export */
+    .app-header-surface .header-event-strip {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      align-content: center;
+      gap: 0.4rem 0.5rem;
+      row-gap: 0.45rem;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+    }
+
+    .app-header-surface .header-event-strip .header-event-select {
+      flex: 1 1 10rem;
+      min-width: 0;
+      max-width: min(18rem, 100%);
+      background: #fff;
+      color: var(--ink);
+      border: 1px solid rgba(0, 45, 84, 0.16);
+      min-height: 2.5rem;
+      padding: 0.4rem 0.75rem 0.4rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) inset, 0 1px 2px rgba(0, 45, 84, 0.08);
+    }
+
+    .app-header-surface .header-event-strip-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.65rem;
+      height: 1.65rem;
+      border-radius: 999px;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      flex-shrink: 0;
+    }
+
+    .app-header-surface .header-event-strip .btn-ghost {
+      font-size: 0.75rem;
+      padding: 0.35rem 0.7rem;
+      white-space: nowrap;
+    }
+
+    .app-header-surface .header-event-strip .header-event-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .app-header-surface .header-event-strip .header-event-btn svg {
+      flex-shrink: 0;
+      opacity: 0.85;
+    }
+
+    .app-header-surface .header-event-strip .header-event-delete {
+      color: rgba(255, 255, 255, 0.92);
+      gap: 0;
+      padding: 0.35rem;
+      width: 2.1rem;
+      height: 2.1rem;
+      min-width: 2.1rem;
+      justify-content: center;
+      border-radius: 999px;
+    }
+
+    .app-header-surface .header-event-strip .header-event-delete svg {
+      opacity: 0.9;
+    }
+
+    .app-header-surface .header-event-strip .header-event-delete:not(:disabled):hover {
+      background: rgba(220, 38, 38, 0.24);
+      border-color: rgba(252, 165, 165, 0.6);
+      color: #fff;
+    }
+
+    .app-header-surface .header-event-strip .header-event-delete[hidden] {
+      display: none;
+    }
+
+    @media (min-width: 640px) {
+      .app-header-surface .header-event-strip {
+        width: auto;
+        max-width: none;
+        flex: 1 1 auto;
+        flex-wrap: nowrap;
+      }
+
+      /* Shrink the event name field first so New/Delete stay on one row. */
+      .app-header-surface .header-event-strip .header-event-select {
+        flex: 1 1 3.5rem;
+        max-width: min(20rem, 36vw);
+      }
+    }
+
+    /* Narrow screens: drop the app “mega pill”; stack calendar print controls */
     @media (max-width: 639px) {
       .app-header-surface {
-        padding: 1rem 0.9rem;
-        gap: 1rem;
+        padding: 0.85rem 0.85rem;
+        gap: 0.75rem;
       }
 
       .header-actions {
@@ -211,17 +443,22 @@
         border-radius: var(--radius);
       }
 
-      .header-actions > .btn-ghost {
+      .header-actions > .header-event-strip {
+        grid-column: 1 / -1;
+      }
+
+      .app-header-surface .app-header-tools > .btn-primary {
         width: 100%;
-        min-height: 2.5rem;
+        min-height: 2.75rem;
+        font-size: 0.875rem;
       }
 
-      .header-actions > .header-export-scope {
-        grid-column: 1 / -1;
+      .panel-head-calendar .calendar-print-toolbar {
+        flex: 1 1 100%;
+        justify-content: flex-start;
       }
 
-      .header-actions > .btn-primary {
-        grid-column: 1 / -1;
+      .calendar-print-toolbar .btn-primary {
         width: 100%;
         min-height: 2.75rem;
         font-size: 0.875rem;
@@ -233,6 +470,10 @@
         gap: 0.4rem;
         padding: 0;
         width: 100%;
+      }
+
+      .calendar-print-toolbar .export-scope-select {
+        max-width: none;
       }
 
       .export-scope-label {
@@ -255,6 +496,7 @@
       outline-offset: 2px;
     }
 
+    /* --- Panels, roster row UI, delay controls, help --- */
     .panel {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -266,6 +508,18 @@
 
     aside.panel {
       border-left: 4px solid var(--amethyst);
+    }
+
+    .panel-warnings-aside .panel-warnings-aside-body {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding-top: 1rem;
+      padding-bottom: 1.25rem;
+    }
+
+    .panel-warnings-aside:not(:has(.warn-banner:not([hidden]))) {
+      display: none;
     }
 
     .panel-lg {
@@ -280,18 +534,6 @@
       align-items: center;
       justify-content: space-between;
       gap: 0.75rem;
-    }
-
-    .aside-panel-head {
-      justify-content: flex-end;
-      background: linear-gradient(95deg, var(--amethyst) 0%, var(--plum) 52%, #5c2868 100%);
-      border-bottom-color: rgba(255, 255, 255, 0.12);
-    }
-
-    .aside-panel-head .tag {
-      background: rgba(255, 255, 255, 0.16);
-      color: #fff;
-      border-color: rgba(255, 255, 255, 0.35);
     }
 
     .panel-lg .panel-head {
@@ -356,6 +598,50 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .row-edit .part-name {
+      flex: 1 1 auto;
+      min-width: 0;
+      font-family: var(--font-ui);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      padding: 0.35rem 0.5rem;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text);
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .row-edit .part-name:hover {
+      background: var(--surface);
+      border-color: var(--border);
+    }
+
+    .row-edit .part-name:focus {
+      background: var(--surface);
+      border-color: var(--accent-line);
+      outline: none;
+    }
+
+    .row-edit .part-remove {
+      flex-shrink: 0;
+      font-size: 0.85rem;
+      line-height: 1;
+      padding: 0.3rem 0.55rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .row-edit .part-remove:hover {
+      color: var(--issue);
+      border-color: var(--issue-line);
+      background: var(--issue-dim);
     }
 
     select {
@@ -436,6 +722,7 @@
       color: var(--text);
     }
 
+    /* --- Working calendar: schedule table & cells --- */
     .table-wrap {
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
@@ -622,6 +909,7 @@
       max-width: 14rem;
     }
 
+    /* --- Toast, warning banners, sector list scroll --- */
     .toast {
       position: fixed;
       bottom: 1.25rem;
@@ -634,7 +922,7 @@
       border-radius: 999px;
       font-size: 0.8125rem;
       box-shadow: var(--shadow);
-      z-index: 100;
+      z-index: 300;
       opacity: 0;
       transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s;
       pointer-events: none;
@@ -671,6 +959,131 @@
 
     .sector-group-label:first-child { margin-top: 0; }
 
+    /* --- Event & roster modal --- */
+    .settings-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 1rem;
+      padding-top: max(1rem, env(safe-area-inset-top));
+      box-sizing: border-box;
+    }
+
+    .settings-modal.is-hidden {
+      display: none !important;
+    }
+
+    .settings-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(3px);
+      cursor: pointer;
+    }
+
+    .settings-modal-card {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 38rem;
+      max-height: min(94dvh, 52rem);
+      display: flex;
+      flex-direction: column;
+      margin-top: 0.25rem;
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: 0 28px 80px rgba(15, 23, 42, 0.18);
+      overflow: hidden;
+    }
+
+    .settings-modal-head {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 1rem 1.15rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+
+    .settings-modal-title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: var(--font-display);
+      letter-spacing: -0.02em;
+    }
+
+    .settings-modal-body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .settings-modal-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.75rem 1.15rem 1.25rem;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .settings-modal-scroll .sector-scroll {
+      max-height: min(38vh, 16rem);
+    }
+
+    .settings-modal-foot {
+      flex-shrink: 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1.15rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface2);
+    }
+
+    .settings-modal-foot .hint {
+      margin: 0;
+      font-size: 0.75rem;
+      color: var(--muted);
+      max-width: 18rem;
+    }
+
+    .settings-modal-foot #btnClearData {
+      margin-right: auto;
+    }
+
+    .btn-ghost.btn-danger {
+      color: var(--issue);
+      border-color: var(--issue-line);
+      background: var(--issue-dim);
+    }
+
+    .btn-ghost.btn-danger:hover {
+      background: rgba(180, 83, 9, 0.18);
+      border-color: rgba(180, 83, 9, 0.42);
+    }
+
+    .btn-icon {
+      min-width: 2.25rem;
+      padding-left: 0.65rem;
+      padding-right: 0.65rem;
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    body.settings-modal-open {
+      overflow: hidden;
+    }
+
+    /* --- Print / PDF handout (calendar panel toolbar) --- */
     .print-handout {
       display: none;
     }
@@ -686,7 +1099,7 @@
         max-width: 720px;
         margin: 0 auto;
         padding: 0 0.5in 0.5in;
-        font-family: Georgia, 'Times New Roman', serif;
+        font-family: var(--font-ui);
       }
       .print-handout h1 {
         font-size: 1.35rem;
@@ -714,42 +1127,117 @@
   </style>
 </head>
 <body class="min-h-screen font-sans antialiased">
+  <!-- === PAGE: shell, calendar, modal, toast === -->
   <div class="tw-shell mx-auto max-w-6xl px-4 py-6 md:px-8 md:py-8">
+    <!-- Header: branding + saved events -->
     <header class="app-header no-print">
       <div class="app-header-surface">
         <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 36 36" focusable="false" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="7" width="20" height="20" rx="5.5" fill="#17b9d1" fill-opacity="0.95"/>
+              <rect x="13" y="11" width="20" height="20" rx="5.5" fill="#ffffff" fill-opacity="0.96"/>
+              <circle cx="18" cy="17" r="1.7" fill="#0089d0"/>
+            </svg>
+          </span>
           <div class="brand-copy">
-            <p class="brand-kicker">Roster-driven · bilateral scheduling</p>
-            <h1>Intralink <span class="brand-title-sub font-medium">GTM Launchpad</span></h1>
-            <p id="brandDesc">Set your day, slot length, and rooms — then load a roster to build the grid.</p>
+            <span class="brand-eyebrow">Intralink</span>
+            <h1 class="brand-wordmark">GTM Launchpad</h1>
           </div>
         </div>
-        <div class="header-actions no-print">
-          <button type="button" class="btn-ghost" id="btnCopy">Copy TSV</button>
-          <div class="header-export-scope">
-            <label class="export-scope-label" for="exportScope">Handout &amp; TSV for</label>
-            <select id="exportScope" class="export-scope-select" aria-label="Export schedule for one company or everyone">
-              <option value="__ALL__">Everyone (full day)</option>
-            </select>
+        <div class="app-header-tools no-print">
+          <div class="header-actions">
+            <div class="header-event-strip" role="group" aria-label="Saved events">
+              <span class="header-event-strip-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" width="14" height="14" focusable="false" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="2.75" y="4.25" width="14.5" height="12.75" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M2.75 8.5h14.5" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M6.75 2.75v3M13.25 2.75v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <label class="sr-only" for="eventSelect">Event</label>
+              <select id="eventSelect" class="header-event-select" aria-label="Select saved event"></select>
+              <button type="button" class="btn-ghost header-event-btn" id="btnEventNew" aria-label="Create new event">
+                <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="M8 2.75v10.5M2.75 8h10.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+                <span>New</span>
+              </button>
+              <button type="button" class="btn-ghost header-event-btn header-event-delete" id="btnEventDelete" aria-label="Delete event" title="Delete event">
+                <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="M3 4.5h10M6.5 4.5V3a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 .75.75v1.5M4.75 4.5l.5 8.5a1 1 0 0 0 1 .95h3.5a1 1 0 0 0 1-.95l.5-8.5M7 7.5v4.25M9 7.5v4.25" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+              </button>
+            </div>
           </div>
-          <button type="button" class="btn-primary" id="btnPrint">Export Report</button>
+          <button type="button" class="btn-primary js-open-settings" id="btnOpenSettings">
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path d="M10.75 2.5l2.75 2.75L5.5 13.25H2.75V10.5L10.75 2.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/></svg>
+            <span>Edit event &amp; roster</span>
+          </button>
         </div>
       </div>
     </header>
 
-    <div class="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,20rem)_1fr] lg:items-start">
-      <aside class="panel no-print" aria-label="Event setup, roster, sectors, pins, and delay">
-        <div class="panel-head aside-panel-head">
-          <span class="tag" id="savedPill" style="margin:0;opacity:0.55;transition:opacity 0.2s;">Saved</span>
+    <!-- Main stack: live schedule table + warnings below -->
+    <div class="grid grid-cols-1 gap-4">
+      <section class="panel panel-lg no-print">
+        <div class="panel-head panel-head-calendar">
+          <div class="panel-head-calendar-main">
+            <h2 id="scheduleTitle">Working calendar</h2>
+          </div>
+          <div class="calendar-print-toolbar no-print" role="group" aria-label="Print handout">
+            <div class="header-export-scope">
+              <label class="export-scope-label" for="exportScope">Print handout</label>
+              <select id="exportScope" class="export-scope-select" aria-label="Printable handout: full schedule or one participant’s meeting list">
+                <option value="__ALL__">Full schedule (all meetings)</option>
+              </select>
+            </div>
+            <button type="button" class="btn-primary" id="btnPrint">Print / PDF</button>
+          </div>
+          <span class="no-print gen-stamp" id="genStamp"></span>
         </div>
-        <div class="panel-body">
-          <div class="warn-banner no-print mb-3" id="covWarn" hidden aria-live="polite"></div>
-          <div class="warn-banner no-print mb-3" id="eventWarn" hidden aria-live="polite"></div>
-          <div class="warn-banner no-print mb-3" id="pinWarn" hidden aria-live="polite"></div>
+        <div class="table-wrap">
+          <table id="scheduleTable" class="schedule" role="grid" aria-label="Delegation schedule">
+            <thead id="scheduleThead"></thead>
+            <tbody id="scheduleBody"></tbody>
+          </table>
+        </div>
+        <footer class="note no-print">
+          Edit the plan with <strong>Edit event &amp; roster</strong> at the top, then <strong>Generate schedule</strong>. Browser print hides this table; use <strong>Print handout</strong> (scope) and <strong>Print / PDF</strong> above for a full grid or one company’s sheet.
+        </footer>
+      </section>
 
+      <aside class="panel panel-warnings-aside no-print" aria-label="Warnings">
+        <div class="panel-body panel-warnings-aside-body">
+          <div class="warn-banner no-print" id="covWarn" hidden aria-live="polite"></div>
+          <div class="warn-banner no-print" id="eventWarn" hidden aria-live="polite"></div>
+          <div class="warn-banner no-print" id="pinWarn" hidden aria-live="polite"></div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Populated for print/PDF; hidden on screen -->
+    <div class="print-handout" id="printHandout" aria-hidden="true"></div>
+  </div>
+
+  <div class="toast no-print" id="toast" role="status"></div>
+
+  <!-- Modal: day/slots/rooms, roster, sectors, pins, delay, generate -->
+  <div id="settingsModal" class="settings-modal is-hidden no-print" aria-hidden="true">
+    <div class="settings-modal-backdrop" id="settingsModalBackdrop" aria-hidden="true"></div>
+    <div class="settings-modal-card" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+      <div class="settings-modal-head">
+        <h2 class="settings-modal-title" id="settingsModalTitle">Event &amp; roster</h2>
+        <button type="button" class="btn-ghost btn-icon" id="btnCloseSettings" aria-label="Close editor">✕</button>
+      </div>
+      <div class="settings-modal-body">
+        <div id="settingsScroll" class="settings-modal-scroll">
+          <!-- Editor steps (order matches user flow): event → roster → sectors → pins → delay → rules -->
+          <!-- Step: day window, slot length, parallel rooms -->
           <div class="step">
             <h3>Event setup</h3>
             <p class="hint">Day window, meeting length, and how many meetings can run at once (rooms / tables). Max 24 time slots × 20 rooms.</p>
+            <div style="margin-top:0.85rem;">
+              <label class="delay-label" for="eventName">Event name</label>
+              <p class="hint" style="margin:0.2rem 0 0.35rem;font-size:0.75rem;">Shown in the event picker and the calendar title.</p>
+              <input type="text" id="eventName" class="delay-select" maxlength="120" autocomplete="off" aria-label="Event name">
+            </div>
             <div class="delay-grid" style="margin-top:0.5rem;">
               <label class="delay-label" for="dayStart">Day start</label>
               <label class="delay-label" for="dayEnd">Day end</label>
@@ -770,6 +1258,7 @@
             </div>
           </div>
 
+          <!-- Step: CSV / JSON / XLSX upload -->
           <div class="step">
             <h3>Roster</h3>
             <p class="hint">CSV, JSON, or Excel (<code>.xlsx</code> / <code>.xls</code>): first sheet, columns <code>name</code>, <code>type</code> (Corp or Startup), <code>sector</code>. Max 20 per side. JSON or Excel may include optional <code>id</code> per row.</p>
@@ -784,12 +1273,18 @@
             <p class="hint text-[var(--issue)] mt-2" id="rosterErr" hidden></p>
           </div>
 
+          <!-- Step: participant list (rename, re-sector, add, remove) -->
           <div class="step">
-            <h3>Sector tags</h3>
-            <p class="hint">Change any company’s sector below — the schedule recomputes on every change. The assignment brief notes corrections for <strong>Sony Sensing</strong> (→ Electronics) and <strong>SeaPower</strong> (→ Energy) versus the spreadsheet defaults.</p>
+            <h3>Participants</h3>
+            <p class="hint">Rename, re-sector, add, or remove corporates and startups. Use <strong>Generate schedule</strong> below to refresh the grid.</p>
             <div class="sector-scroll" id="sectorEditors"></div>
+            <div class="flex flex-wrap gap-2 mt-2">
+              <button type="button" class="btn-ghost" id="btnAddCorp">+ Add corporate</button>
+              <button type="button" class="btn-ghost" id="btnAddStartup">+ Add startup</button>
+            </div>
           </div>
 
+          <!-- Step: forced corp–startup pairs -->
           <div class="step">
             <h3>Pinned meetings <span class="text-[var(--muted)] font-normal">(human in the loop)</span></h3>
             <p class="hint">Lock in who meets whom (e.g. <strong>Toyota Next</strong> with <strong>QuickCharge</strong>). You only pick the pair; <strong>time and room are assigned</strong> by the tool. Other empty slots are filled as usual. Pinned pairs must share a sector.</p>
@@ -797,6 +1292,7 @@
             <button type="button" class="btn-ghost mt-2" id="btnAddPin">Add pinned pair</button>
           </div>
 
+          <!-- Step: optional corporate late start -->
           <div class="step">
             <h3>Time management · Corporate delay</h3>
             <p class="hint">Pick a corporate and the <strong>earliest clock time</strong> their meetings may <em>start</em> (compared to each slot’s start). Until then they are blocked.</p>
@@ -814,37 +1310,25 @@
             </div>
           </div>
 
+          <!-- Collapsible scheduling rules copy -->
           <details class="help">
             <summary>Official rules</summary>
             <p style="margin:0.5rem 0 0;"><strong>Sector match:</strong> startups only meet corporates in the same sector. <strong>No collisions:</strong> the same corporate or startup cannot appear in two tables in the same time slot. <strong>Capacity:</strong> each startup gets at least one meeting in an open slot when the sector graph allows it. <strong>Pinned pairs</strong> are placed first. <strong>Corporate delay:</strong> optionally block one corporate before a chosen time.</p>
           </details>
         </div>
-      </aside>
-
-      <section class="panel panel-lg no-print">
-        <div class="panel-head">
-          <h2 id="scheduleTitle">Working calendar</h2>
-          <span class="no-print gen-stamp" id="genStamp"></span>
-        </div>
-        <div class="table-wrap">
-          <table id="scheduleTable" class="schedule" role="grid" aria-label="Delegation schedule">
-            <thead id="scheduleThead"></thead>
-            <tbody id="scheduleBody"></tbody>
-          </table>
-        </div>
-        <footer class="note no-print">
-          Browser print hides this table; scope for print/TSV is set in the <strong>header</strong> next to Export Report.
-        </footer>
-      </section>
+      </div>
+      <div class="settings-modal-foot">
+        <button type="button" class="btn-ghost btn-danger" id="btnClearData" title="Remove all other events and reset the template event to its defaults">Clear all data</button>
+        <p class="hint">Changes save in the background; the calendar updates when you generate.</p>
+        <button type="button" class="btn-ghost" id="btnSettingsCancel">Close</button>
+        <button type="button" class="btn-primary" id="btnGenerateSchedule">Generate schedule</button>
+      </div>
     </div>
-
-    <div class="print-handout" id="printHandout" aria-hidden="true"></div>
   </div>
 
-  <div class="toast no-print" id="toast" role="status"></div>
-
-  <!-- After Tailwind’s injected CSS so padding / flex aren’t reset by preflight. -->
+  <!-- === STYLESHEET (post-Tailwind): button pills — load after CDN so preflight doesn’t clobber padding/flex === -->
   <style>
+    /* --- Shared button styles (.btn, .btn-ghost, .btn-primary) --- */
     button[type="button"].btn-ghost,
     button[type="button"].btn-primary,
     button[type="button"].btn,
@@ -911,40 +1395,68 @@
       border-color: var(--btn-ghost-border);
     }
 
-    /* Hero header: white pill primary (navy label) + frosted ghost — matches Intralink CTAs */
-    .app-header-surface .btn-primary {
-      background: #fff;
-      color: var(--ink);
-    }
-
-    .app-header-surface .btn-primary:hover {
-      filter: brightness(0.96);
-    }
-
-    .app-header-surface .btn-ghost,
-    .app-header-surface label.btn {
-      background: rgba(255, 255, 255, 0.14);
-      border-color: rgba(255, 255, 255, 0.42);
+    /* Calendar handout: teal primary vs the white scope field */
+    .calendar-print-toolbar .btn-primary {
+      background: linear-gradient(180deg, #1ac2db 0%, var(--teal) 55%, #0f9eb4 100%);
       color: #fff;
+      border-color: rgba(0, 45, 84, 0.12);
+      font-weight: 600;
+      padding: 0.55rem 1.35rem;
+      box-shadow: 0 1px 2px rgba(0, 45, 84, 0.18);
     }
 
-    .app-header-surface button.btn-ghost:hover,
-    .app-header-surface label.btn:hover:not(.btn-primary) {
-      background: rgba(255, 255, 255, 0.26);
-      border-color: rgba(255, 255, 255, 0.55);
+    .calendar-print-toolbar .btn-primary:hover {
+      filter: brightness(1.05);
+      border-color: rgba(0, 45, 84, 0.14);
+    }
+
+    /* Top bar: primary editor action on brand blue */
+    .app-header-surface .app-header-tools > .btn-primary {
+      background: linear-gradient(180deg, #1ac2db 0%, var(--teal) 55%, #0f9eb4 100%);
+      color: #fff;
+      border-color: rgba(0, 45, 84, 0.12);
+      font-weight: 600;
+      padding: 0.55rem 1.25rem;
+      box-shadow: 0 1px 2px rgba(0, 45, 84, 0.18), 0 8px 18px rgba(10, 122, 152, 0.28);
+      flex-shrink: 0;
+      gap: 0.45rem;
+    }
+
+    .app-header-surface .app-header-tools > .btn-primary svg {
+      flex-shrink: 0;
+      opacity: 0.95;
+    }
+
+    .app-header-surface .app-header-tools > .btn-primary:hover {
+      filter: brightness(1.05);
+      border-color: rgba(0, 45, 84, 0.14);
+      box-shadow: 0 1px 2px rgba(0, 45, 84, 0.22), 0 10px 22px rgba(10, 122, 152, 0.34);
     }
   </style>
 
+  <!-- === SCRIPT: scheduler UI + persistence (single IIFE) === -->
   <script>
 (function () {
+  // --- Constants & demo roster seed ---
   const SECTORS = ['Automotive', 'Electronics', 'Energy'];
-  const STORAGE_KEY = 'launchpad-gtm-v5';
-  const LEGACY_STORAGE_KEY = 'launchpad-gtm-v4';
+  const STORAGE_KEY = 'launchpad-gtm';
   const MAX_PER_SIDE = 20;
   const MAX_SLOTS = 24;
   const MAX_TABLES = 20;
 
-  /** Demo seed only — not used to validate saved rosters. */
+  /** First saved event when there is no prior localStorage (or no events yet). */
+  const DEFAULT_FIRST_EVENT_NAME = 'Trade mission in Japan';
+  /**
+   * Stable id for the always-present template event. Guaranteed to exist in
+   * `events[]` at all times, cannot be deleted via the Delete button, and is
+   * restored to its pristine template state by the Clear-all-data button.
+   */
+  const DEFAULT_EVENT_ID = '__default__';
+
+  /**
+   * Demo seed / fresh default roster — kept in sync with `Participants (1).xlsx`
+   * (sheet1: id, name, sector, type).
+   */
   const DEFAULT_PARTICIPANTS = [
     { id: 'C1', name: 'Toyota Next', sector: 'Automotive', type: 'Corp' },
     { id: 'C2', name: 'Panasonic Energy', sector: 'Electronics', type: 'Corp' },
@@ -963,6 +1475,7 @@
     { id: 'S10', name: 'SeaPower', sector: 'Electronics', type: 'Startup' }
   ];
 
+  // --- In-memory app state (hydrated from DOM + localStorage on load) ---
   function defaultEventConfig() {
     return {
       dayStart: '10:00',
@@ -980,15 +1493,27 @@
   let delayCorpId = 'C1';
   /** HH:MM — earliest slot start for delayed corporate */
   let delayFromTime = '13:00';
+  /** @type {Array<{ id: string, name: string, participants: any[], eventConfig: any, fixedPairings: any[], delayEnabled: boolean, delayCorpId: string, delayFromTime: string }>} */
+  let events = [];
+  let activeEventId = '';
   /** @type {{ rows: Array<{ time: string, cells: Array<any> }>, uncovered: string[], pinFailures: string[] } | null} */
   let lastPlan = null;
+  let settingsModalOpen = false;
+  /** True when the editor has changes not yet reflected in the calendar (modal open). */
+  let scheduleStale = false;
+  /**
+   * When the user clicks "New", the event is created in memory but NOT persisted
+   * to localStorage until they click "Generate schedule". If they close the
+   * editor first, the draft is discarded and the previous event is restored.
+   * Shape: `{ id: string, prevActiveId: string }` while a draft exists, else null.
+   */
+  let pendingNewEventCtx = null;
 
   const els = {
     scheduleBody: document.getElementById('scheduleBody'),
     scheduleThead: document.getElementById('scheduleThead'),
     scheduleTable: document.getElementById('scheduleTable'),
     scheduleTitle: document.getElementById('scheduleTitle'),
-    brandDesc: document.getElementById('brandDesc'),
     sectorEditors: document.getElementById('sectorEditors'),
     delayEnabled: document.getElementById('delayEnabled'),
     delayCorpId: document.getElementById('delayCorpId'),
@@ -997,6 +1522,7 @@
     dayEnd: document.getElementById('dayEnd'),
     slotMinutes: document.getElementById('slotMinutes'),
     tableCount: document.getElementById('tableCount'),
+    eventName: document.getElementById('eventName'),
     covWarn: document.getElementById('covWarn'),
     eventWarn: document.getElementById('eventWarn'),
     pinWarn: document.getElementById('pinWarn'),
@@ -1005,16 +1531,139 @@
     genStamp: document.getElementById('genStamp'),
     toast: document.getElementById('toast'),
     btnPrint: document.getElementById('btnPrint'),
-    btnCopy: document.getElementById('btnCopy'),
-    savedPill: document.getElementById('savedPill'),
     rosterFile: document.getElementById('rosterFile'),
     rosterErr: document.getElementById('rosterErr'),
     btnTemplate: document.getElementById('btnTemplate'),
     btnRestoreDemo: document.getElementById('btnRestoreDemo'),
     pinnedRows: document.getElementById('pinnedRows'),
-    btnAddPin: document.getElementById('btnAddPin')
+    btnAddPin: document.getElementById('btnAddPin'),
+    btnAddCorp: document.getElementById('btnAddCorp'),
+    btnAddStartup: document.getElementById('btnAddStartup'),
+    settingsModal: document.getElementById('settingsModal'),
+    settingsModalBackdrop: document.getElementById('settingsModalBackdrop'),
+    btnCloseSettings: document.getElementById('btnCloseSettings'),
+    btnSettingsCancel: document.getElementById('btnSettingsCancel'),
+    btnGenerateSchedule: document.getElementById('btnGenerateSchedule'),
+    eventSelect: document.getElementById('eventSelect'),
+    btnEventNew: document.getElementById('btnEventNew'),
+    btnEventDelete: document.getElementById('btnEventDelete'),
+    btnClearData: document.getElementById('btnClearData')
   };
 
+  // --- Settings modal: open/close, stale flag, generate from editor ---
+  function isEditorModalOpen() {
+    return settingsModalOpen;
+  }
+
+  /** While the editor is open, skip live grid refresh until the user clicks Generate schedule (or closes with pending edits). */
+  function requestScheduleUpdate() {
+    if (isEditorModalOpen()) {
+      scheduleStale = true;
+      scheduleSave();
+      return;
+    }
+    renderSchedule();
+    scheduleSave();
+  }
+
+  /**
+   * @param {MouseEvent | { focus?: 'eventName' | 'generate' } | undefined} optsOrEv
+   */
+  function openSettingsModal(optsOrEv) {
+    const focusEventName =
+      optsOrEv && typeof optsOrEv === 'object' && !(optsOrEv instanceof MouseEvent) && optsOrEv.focus === 'eventName';
+    settingsModalOpen = true;
+    applyEventToDom();
+    els.settingsModal.classList.remove('is-hidden');
+    els.settingsModal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('settings-modal-open');
+    document.querySelectorAll('.js-open-settings').forEach((b) => b.setAttribute('aria-expanded', 'true'));
+    setTimeout(() => {
+      if (focusEventName && els.eventName) {
+        els.eventName.focus();
+        els.eventName.select();
+      } else {
+        els.btnGenerateSchedule.focus();
+      }
+    }, 50);
+  }
+
+  function shutEditorModalOnly() {
+    settingsModalOpen = false;
+    els.settingsModal.classList.add('is-hidden');
+    els.settingsModal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('settings-modal-open');
+    document.querySelectorAll('.js-open-settings').forEach((b) => b.setAttribute('aria-expanded', 'false'));
+  }
+
+  /** Close the editor; persist name & day settings; if the grid was marked stale, refresh it. */
+  function closeSettingsModal() {
+    const stale = scheduleStale;
+    if (pendingNewEventCtx && pendingNewEventCtx.id === activeEventId) {
+      discardPendingNewEvent();
+      scheduleStale = false;
+      shutEditorModalOnly();
+      scheduleSave();
+      return;
+    }
+    readEventFromDom();
+    delayFromTime = els.delayFromTime.value || delayFromTime;
+    flushActiveEventIntoEvents();
+    renderEventSelect();
+    updateBrandAndTitle();
+    shutEditorModalOnly();
+    if (stale) {
+      renderSchedule();
+    }
+    scheduleStale = false;
+    scheduleSave();
+  }
+
+  /**
+   * Revert the in-memory "pending new event" created by the New button: remove
+   * it from `events[]`, restore the previously-active event, and refresh every
+   * UI surface that reflects event state. Does not touch localStorage directly —
+   * `scheduleSave()` after this call persists the cleaned list.
+   */
+  function discardPendingNewEvent() {
+    if (!pendingNewEventCtx) return;
+    const draftId = pendingNewEventCtx.id;
+    const prevId = pendingNewEventCtx.prevActiveId;
+    pendingNewEventCtx = null;
+    events = events.filter((e) => e.id !== draftId);
+    const prev = events.find((e) => e.id === prevId) || events[0];
+    if (!prev) return;
+    activeEventId = prev.id;
+    applySnapshotToGlobals(prev);
+    applyEventToDom();
+    showRosterErr('');
+    prunePins();
+    populateDelayCorpSelect();
+    populateExportScope();
+    syncDelayControls();
+    renderSectorEditors();
+    renderPinnedEditors();
+    renderSchedule();
+    renderEventSelect();
+    updateBrandAndTitle();
+    toast('New event discarded');
+  }
+
+  function generateScheduleFromEditor() {
+    scheduleStale = false;
+    readEventFromDom();
+    delayFromTime = els.delayFromTime.value || delayFromTime;
+    renderSchedule();
+    const committingDraft = pendingNewEventCtx && pendingNewEventCtx.id === activeEventId;
+    pendingNewEventCtx = null;
+    save();
+    renderEventSelect();
+    updateBrandAndTitle();
+    toast(committingDraft ? 'Event saved · schedule generated' : 'Schedule generated');
+    shutEditorModalOnly();
+  }
+
+  // --- Time helpers: HH:MM, slot grid, room labels, event DOM sync ---
   function timeToMinutes(t) {
     const parts = String(t || '0:0').trim().split(':');
     const h = parseInt(parts[0], 10) || 0;
@@ -1058,6 +1707,11 @@
     eventConfig.dayEnd = els.dayEnd.value || '17:00';
     eventConfig.slotMinutes = parseInt(els.slotMinutes.value, 10) || 60;
     eventConfig.tableCount = Math.min(MAX_TABLES, Math.max(1, parseInt(els.tableCount.value, 10) || 1));
+    const idx = events.findIndex((e) => e.id === activeEventId);
+    if (idx >= 0 && els.eventName) {
+      const t = String(els.eventName.value || '').trim();
+      events[idx].name = t || events[idx].name || 'Event';
+    }
   }
 
   function applyEventToDom() {
@@ -1065,6 +1719,8 @@
     els.dayEnd.value = eventConfig.dayEnd || '16:00';
     els.slotMinutes.value = String([15, 30, 45, 60].includes(eventConfig.slotMinutes) ? eventConfig.slotMinutes : 60);
     els.tableCount.value = String(Math.min(MAX_TABLES, Math.max(1, eventConfig.tableCount || 2)));
+    const ev = events.find((e) => e.id === activeEventId);
+    if (els.eventName && ev) els.eventName.value = ev.name || 'Event';
   }
 
   /** Fills the rooms dropdown once (1–20). */
@@ -1088,6 +1744,7 @@
     return Array.from(set);
   }
 
+  // --- Roster: type normalization ---
   function normalizeType(raw) {
     const s = String(raw || '').trim().toLowerCase();
     if (s === 'corp' || s === 'corporate' || s === 'corporates') return 'Corp';
@@ -1095,6 +1752,7 @@
     return '';
   }
 
+  // --- Roster: validate, assign ids, CSV/JSON/XLSX parsers ---
   /**
    * Persist only after validation passes (see validateRoster).
    * @param {any[]} arr
@@ -1231,86 +1889,326 @@
     return assignIdsFromRows(mapped);
   }
 
-  function tryMigrateFromV4() {
-    try {
-      if (localStorage.getItem(STORAGE_KEY)) return;
-      const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
-      if (!raw) return;
-      const data = JSON.parse(raw);
-      if (!Array.isArray(data.participants)) return;
-      const next = data.participants
-        .map((p) => ({
-          id: String(p.id || ''),
-          name: typeof p.name === 'string' ? p.name : String(p.id),
+  // --- localStorage: load, save, debounced autosave ---
+  function newEventId() {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+    return 'ev_' + Date.now() + '_' + Math.floor(Math.random() * 1e9);
+  }
+
+  function eventEntryFromGlobals(id, name) {
+    const label = typeof name === 'string' && name.trim() ? name.trim() : 'Event';
+    return {
+      id,
+      name: label,
+      participants: JSON.parse(JSON.stringify(participants)),
+      eventConfig: {
+        dayStart: eventConfig.dayStart,
+        dayEnd: eventConfig.dayEnd,
+        slotMinutes: eventConfig.slotMinutes,
+        tableCount: eventConfig.tableCount
+      },
+      fixedPairings: fixedPairings.map((x) => ({ startupId: x.startupId, corporateId: x.corporateId })),
+      delayEnabled: !!delayEnabled,
+      delayCorpId: delayCorpId,
+      delayFromTime: delayFromTime
+    };
+  }
+
+  function blankEventRecord(id, name) {
+    return {
+      id,
+      name,
+      participants: JSON.parse(JSON.stringify(DEFAULT_PARTICIPANTS)),
+      eventConfig: defaultEventConfig(),
+      fixedPairings: [],
+      delayEnabled: false,
+      delayCorpId: 'C1',
+      delayFromTime: '13:00'
+    };
+  }
+
+  function applySnapshotToGlobals(ev) {
+    const nextP = Array.isArray(ev.participants)
+      ? ev.participants.map((p) => ({
+          id: String(p.id || '').trim(),
+          name: typeof p.name === 'string' ? p.name.trim() : String(p.id),
           sector: typeof p.sector === 'string' && p.sector.trim() ? p.sector.trim() : SECTORS[0],
           type: p.type === 'Corp' || p.type === 'Startup' ? p.type : 'Startup'
         }))
-        .filter((p) => p.id);
-      const v = validateRoster(next);
-      if (!v.ok) return;
-      const payload = {
-        participants: next,
-        eventConfig: defaultEventConfig(),
-        fixedPairings: [],
-        delayEnabled: !!data.delayEnabled || !!data.isToyotaDelayed,
-        delayCorpId: typeof data.delayCorpId === 'string' ? data.delayCorpId : 'C1',
-        delayFromTime: '13:00'
+      : JSON.parse(JSON.stringify(DEFAULT_PARTICIPANTS));
+    const v = validateRoster(nextP);
+    if (v.ok) participants = nextP;
+    else {
+      participants = JSON.parse(JSON.stringify(DEFAULT_PARTICIPANTS));
+      showRosterErr('Saved roster was invalid; restored demo. ' + v.errors[0]);
+    }
+    if (ev.eventConfig && typeof ev.eventConfig === 'object') {
+      eventConfig = {
+        dayStart: ev.eventConfig.dayStart || defaultEventConfig().dayStart,
+        dayEnd: ev.eventConfig.dayEnd || defaultEventConfig().dayEnd,
+        slotMinutes: [15, 30, 45, 60].includes(parseInt(ev.eventConfig.slotMinutes, 10))
+          ? parseInt(ev.eventConfig.slotMinutes, 10)
+          : 60,
+        tableCount: Math.min(MAX_TABLES, Math.max(1, parseInt(ev.eventConfig.tableCount, 10) || 2))
       };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-    } catch (_) { /* ignore */ }
+    } else {
+      eventConfig = defaultEventConfig();
+    }
+    if (Array.isArray(ev.fixedPairings)) {
+      fixedPairings = ev.fixedPairings
+        .filter((x) => x && typeof x.startupId === 'string' && typeof x.corporateId === 'string')
+        .map((x) => ({ startupId: x.startupId, corporateId: x.corporateId }));
+    } else {
+      fixedPairings = [];
+    }
+    if (typeof ev.delayEnabled === 'boolean') delayEnabled = ev.delayEnabled;
+    else delayEnabled = false;
+    if (typeof ev.delayCorpId === 'string' && participants.some((p) => p.id === ev.delayCorpId && p.type === 'Corp')) {
+      delayCorpId = ev.delayCorpId;
+    } else delayCorpId = 'C1';
+    if (typeof ev.delayFromTime === 'string' && /^\d{2}:\d{2}$/.test(ev.delayFromTime)) {
+      delayFromTime = ev.delayFromTime;
+    } else if (typeof ev.delayFromHour === 'number' && !isNaN(ev.delayFromHour)) {
+      delayFromTime = String(ev.delayFromHour).padStart(2, '0') + ':00';
+    } else {
+      delayFromTime = '13:00';
+    }
+  }
+
+  function normalizeStoredEvent(ev) {
+    const id = ev && typeof ev.id === 'string' && ev.id.trim() ? ev.id.trim() : newEventId();
+    const name = ev && typeof ev.name === 'string' && ev.name.trim() ? ev.name.trim() : 'Event';
+    const copy = JSON.parse(JSON.stringify(ev || {}));
+    copy.id = id;
+    copy.name = name;
+    applySnapshotToGlobals(copy);
+    return eventEntryFromGlobals(id, name);
+  }
+
+  function flushActiveEventIntoEvents() {
+    const idx = events.findIndex((e) => e.id === activeEventId);
+    if (idx < 0) return;
+    const nm = events[idx].name;
+    events[idx] = eventEntryFromGlobals(activeEventId, nm);
+  }
+
+  function renderEventSelect() {
+    const sel = els.eventSelect;
+    if (!sel) return;
+    sel.replaceChildren();
+    for (const ev of events) {
+      const o = document.createElement('option');
+      o.value = ev.id;
+      o.textContent = isDefaultEventId(ev.id) ? (ev.name || 'Event') + ' · Template' : ev.name || 'Event';
+      sel.appendChild(o);
+    }
+    if (events.some((e) => e.id === activeEventId)) {
+      sel.value = activeEventId;
+    } else if (events.length) {
+      activeEventId = events[0].id;
+      sel.value = activeEventId;
+    }
+    if (els.btnEventDelete) {
+      const protectedActive = isDefaultEventId(activeEventId);
+      els.btnEventDelete.hidden = protectedActive;
+      els.btnEventDelete.disabled = protectedActive;
+      els.btnEventDelete.title = protectedActive ? '' : 'Delete event';
+    }
+  }
+
+  function activateEventById(id) {
+    if (id === activeEventId) return;
+    if (settingsModalOpen) {
+      toast('Close the editor before switching events.');
+      renderEventSelect();
+      return;
+    }
+    readEventFromDom();
+    delayFromTime = els.delayFromTime.value || delayFromTime;
+    if (!validateRoster(participants).ok) {
+      toast('Fix roster issues before switching events.');
+      renderEventSelect();
+      return;
+    }
+    flushActiveEventIntoEvents();
+    const next = events.find((e) => e.id === id);
+    if (!next) {
+      renderEventSelect();
+      return;
+    }
+    activeEventId = id;
+    applySnapshotToGlobals(next);
+    applyEventToDom();
+    showRosterErr('');
+    prunePins();
+    populateDelayCorpSelect();
+    populateExportScope();
+    syncDelayControls();
+    renderSectorEditors();
+    renderPinnedEditors();
+    renderSchedule();
+    renderEventSelect();
+    scheduleSave();
+  }
+
+  function prepareForEventListEdit() {
+    if (settingsModalOpen) {
+      toast('Close the editor first.');
+      return false;
+    }
+    readEventFromDom();
+    delayFromTime = els.delayFromTime.value || delayFromTime;
+    if (!validateRoster(participants).ok) {
+      toast('Fix roster issues before changing events.');
+      return false;
+    }
+    flushActiveEventIntoEvents();
+    return true;
+  }
+
+  function addNewEventFromUi() {
+    if (!prepareForEventListEdit()) return;
+    const prevActiveId = activeEventId;
+    const id = newEventId();
+    const rec = blankEventRecord(id, 'Event ' + (events.length + 1));
+    events.push(rec);
+    activeEventId = id;
+    pendingNewEventCtx = { id, prevActiveId };
+    applySnapshotToGlobals(rec);
+    applyEventToDom();
+    showRosterErr('');
+    prunePins();
+    populateDelayCorpSelect();
+    populateExportScope();
+    syncDelayControls();
+    renderSectorEditors();
+    renderPinnedEditors();
+    renderSchedule();
+    renderEventSelect();
+    openSettingsModal({ focus: 'eventName' });
+  }
+
+  function deleteActiveEventFromUi() {
+    if (isDefaultEventId(activeEventId)) {
+      toast('The template event cannot be deleted.');
+      return;
+    }
+    if (events.length <= 1) return;
+    if (!prepareForEventListEdit()) return;
+    if (!window.confirm('Delete this event? This cannot be undone.')) return;
+    const delId = activeEventId;
+    events = events.filter((e) => e.id !== delId);
+    activeEventId = events[0].id;
+    applySnapshotToGlobals(events[0]);
+    applyEventToDom();
+    showRosterErr('');
+    prunePins();
+    populateDelayCorpSelect();
+    populateExportScope();
+    syncDelayControls();
+    renderSectorEditors();
+    renderPinnedEditors();
+    renderSchedule();
+    renderEventSelect();
+    save();
+    toast('Event deleted');
+  }
+
+  /** Pristine template record for the always-present default event. */
+  function buildDefaultEventRecord() {
+    return {
+      id: DEFAULT_EVENT_ID,
+      name: DEFAULT_FIRST_EVENT_NAME,
+      participants: JSON.parse(JSON.stringify(DEFAULT_PARTICIPANTS)),
+      eventConfig: defaultEventConfig(),
+      fixedPairings: [],
+      delayEnabled: false,
+      delayCorpId: 'C1',
+      delayFromTime: '13:00'
+    };
+  }
+
+  function seedFreshState() {
+    const rec = buildDefaultEventRecord();
+    events = [rec];
+    activeEventId = rec.id;
+    applySnapshotToGlobals(rec);
+  }
+
+  /** Guarantees the template event is always present at the head of `events`. */
+  function ensureDefaultEventPresent() {
+    if (events.some((e) => e.id === DEFAULT_EVENT_ID)) return;
+    events.unshift(buildDefaultEventRecord());
+  }
+
+  function isDefaultEventId(id) {
+    return id === DEFAULT_EVENT_ID;
+  }
+
+  function clearStoredState() {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (_) {
+      /* ignore (e.g. disabled storage) */
+    }
+  }
+
+  /**
+   * Removes every event except the template and resets the template event to
+   * its pristine state (DEFAULT_FIRST_EVENT_NAME, DEFAULT_PARTICIPANTS,
+   * defaultEventConfig()). Triggered from the editor modal footer.
+   */
+  function clearAllData() {
+    const ok = window.confirm(
+      'Remove all other events and reset the template to its defaults? This cannot be undone.'
+    );
+    if (!ok) return;
+    clearStoredState();
+    seedFreshState();
+    applyEventToDom();
+    showRosterErr('');
+    prunePins();
+    populateDelayCorpSelect();
+    populateExportScope();
+    syncDelayControls();
+    renderSectorEditors();
+    renderPinnedEditors();
+    renderEventSelect();
+    renderSchedule();
+    save();
+    toast('All data cleared');
   }
 
   function load() {
-    tryMigrateFromV4();
-    const raw = localStorage.getItem(STORAGE_KEY);
+    let raw = null;
+    try {
+      raw = localStorage.getItem(STORAGE_KEY);
+    } catch (_) {
+      /* ignore (e.g. disabled storage) */
+    }
     if (!raw) {
-      participants = JSON.parse(JSON.stringify(DEFAULT_PARTICIPANTS));
-      eventConfig = defaultEventConfig();
-      fixedPairings = [];
-      delayEnabled = false;
-      delayCorpId = 'C1';
-      delayFromTime = '13:00';
+      seedFreshState();
       return;
     }
-    const data = JSON.parse(raw);
-    if (Array.isArray(data.participants)) {
-      const next = data.participants.map((p) => ({
-        id: String(p.id || '').trim(),
-        name: typeof p.name === 'string' ? p.name.trim() : String(p.id),
-        sector: typeof p.sector === 'string' && p.sector.trim() ? p.sector.trim() : SECTORS[0],
-        type: p.type === 'Corp' || p.type === 'Startup' ? p.type : 'Startup'
-      }));
-      const v = validateRoster(next);
-      if (v.ok) participants = next;
-      else {
-        participants = JSON.parse(JSON.stringify(DEFAULT_PARTICIPANTS));
-        showRosterErr('Saved roster was invalid; restored demo. ' + v.errors[0]);
-      }
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch (_) {
+      seedFreshState();
+      return;
     }
-    if (data.eventConfig && typeof data.eventConfig === 'object') {
-      eventConfig = {
-        dayStart: data.eventConfig.dayStart || defaultEventConfig().dayStart,
-        dayEnd: data.eventConfig.dayEnd || defaultEventConfig().dayEnd,
-        slotMinutes: [15, 30, 45, 60].includes(parseInt(data.eventConfig.slotMinutes, 10))
-          ? parseInt(data.eventConfig.slotMinutes, 10)
-          : 60,
-        tableCount: Math.min(MAX_TABLES, Math.max(1, parseInt(data.eventConfig.tableCount, 10) || 2))
-      };
+    if (!data || !Array.isArray(data.events) || data.events.length === 0) {
+      seedFreshState();
+      return;
     }
-    if (Array.isArray(data.fixedPairings)) {
-      fixedPairings = data.fixedPairings
-        .filter((x) => x && typeof x.startupId === 'string' && typeof x.corporateId === 'string')
-        .map((x) => ({ startupId: x.startupId, corporateId: x.corporateId }));
-    }
-    if (typeof data.delayEnabled === 'boolean') delayEnabled = data.delayEnabled;
-    if (typeof data.delayCorpId === 'string' && participants.some((p) => p.id === data.delayCorpId && p.type === 'Corp')) {
-      delayCorpId = data.delayCorpId;
-    }
-    if (typeof data.delayFromTime === 'string' && /^\d{2}:\d{2}$/.test(data.delayFromTime)) {
-      delayFromTime = data.delayFromTime;
-    } else if (typeof data.delayFromHour === 'number' && !isNaN(data.delayFromHour)) {
-      delayFromTime = String(data.delayFromHour).padStart(2, '0') + ':00';
-    }
+    events = data.events.map((e) => normalizeStoredEvent(e));
+    ensureDefaultEventPresent();
+    activeEventId =
+      typeof data.activeEventId === 'string' && events.some((e) => e.id === data.activeEventId)
+        ? data.activeEventId
+        : events[0].id;
+    const active = events.find((e) => e.id === activeEventId) || events[0];
+    applySnapshotToGlobals(active);
   }
 
   function save() {
@@ -1318,18 +2216,20 @@
     delayFromTime = els.delayFromTime.value || delayFromTime;
     const v = validateRoster(participants);
     if (!v.ok) return;
+    let idx = events.findIndex((e) => e.id === activeEventId);
+    if (idx < 0) {
+      activeEventId = newEventId();
+      events.push(eventEntryFromGlobals(activeEventId, 'Event ' + (events.length + 1)));
+      idx = events.length - 1;
+    }
+    flushActiveEventIntoEvents();
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
-        participants,
-        eventConfig,
-        fixedPairings,
-        delayEnabled,
-        delayCorpId,
-        delayFromTime
+        activeEventId,
+        events
       })
     );
-    flashSaved();
   }
 
   let saveTimer;
@@ -1338,15 +2238,7 @@
     saveTimer = setTimeout(save, 280);
   }
 
-  function flashSaved() {
-    els.savedPill.textContent = 'Saved';
-    els.savedPill.style.opacity = '1';
-    clearTimeout(flashSaved._t);
-    flashSaved._t = setTimeout(() => {
-      els.savedPill.style.opacity = '0.65';
-    }, 800);
-  }
-
+  // --- Ephemeral UI: toast + roster file error line ---
   function toast(msg) {
     els.toast.textContent = msg;
     els.toast.classList.add('show');
@@ -1364,6 +2256,7 @@
     els.rosterErr.textContent = msg;
   }
 
+  // --- Pinned pairs hygiene, corporate delay, handout export scope ---
   function prunePins() {
     fixedPairings = fixedPairings.filter(
       (p) =>
@@ -1413,7 +2306,7 @@
     sel.innerHTML = '';
     const allOpt = document.createElement('option');
     allOpt.value = '__ALL__';
-    allOpt.textContent = 'Everyone (full day)';
+    allOpt.textContent = 'Full schedule (all meetings)';
     sel.appendChild(allOpt);
     const ogCorp = document.createElement('optgroup');
     ogCorp.label = 'Corporates';
@@ -1457,6 +2350,7 @@
     return participants.find((p) => p.id === id) || null;
   }
 
+  // --- Greedy scheduler: scoring helpers + computeSchedule() ---
   function meetingKey(s, c) {
     return s.id + '|' + c.id;
   }
@@ -1607,6 +2501,59 @@
     return { rows: rows, uncovered: uncovered, pinFailures: pinFailures };
   }
 
+  // --- Render (modal): participant list + pinned meeting rows ---
+  /** Next unused id for a new participant of the given type (C1/C2… or S1/S2…). */
+  function nextIdForType(type) {
+    const prefix = type === 'Corp' ? 'C' : 'S';
+    const used = new Set(participants.map((p) => p.id));
+    let n = 1;
+    while (used.has(prefix + n)) n++;
+    return prefix + n;
+  }
+
+  function addParticipant(type) {
+    const sameSide = participants.filter((p) => p.type === type).length;
+    if (sameSide >= MAX_PER_SIDE) {
+      toast('Max ' + MAX_PER_SIDE + ' ' + (type === 'Corp' ? 'corporates' : 'startups') + ' per event.');
+      return;
+    }
+    const id = nextIdForType(type);
+    const defaultSector = (allSectorOptions()[0] || SECTORS[0]);
+    const label = type === 'Corp' ? 'New corporate ' + id : 'New startup ' + id;
+    participants.push({ id, type, name: label, sector: defaultSector });
+    showRosterErr('');
+    populateDelayCorpSelect();
+    populateExportScope();
+    syncDelayControls();
+    renderSectorEditors();
+    renderPinnedEditors();
+    requestScheduleUpdate();
+    const input = els.sectorEditors.querySelector('input.part-name[data-id="' + id + '"]');
+    if (input) {
+      input.focus();
+      input.select();
+    }
+  }
+
+  function removeParticipant(id) {
+    const target = participants.find((p) => p.id === id);
+    if (!target) return;
+    const sameSide = participants.filter((p) => p.type === target.type).length;
+    if (sameSide <= 1) {
+      toast('Need at least one ' + (target.type === 'Corp' ? 'corporate' : 'startup') + '.');
+      return;
+    }
+    if (!window.confirm('Remove ' + target.name + '?')) return;
+    participants = participants.filter((p) => p.id !== id);
+    prunePins();
+    populateDelayCorpSelect();
+    populateExportScope();
+    syncDelayControls();
+    renderSectorEditors();
+    renderPinnedEditors();
+    requestScheduleUpdate();
+  }
+
   function renderSectorEditors() {
     els.sectorEditors.innerHTML = '';
     const opts = allSectorOptions();
@@ -1625,8 +2572,29 @@
       for (const p of sorted) {
         const row = document.createElement('div');
         row.className = 'row-edit';
-        const label = document.createElement('span');
-        label.textContent = p.name;
+
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.className = 'part-name';
+        nameInput.value = p.name;
+        nameInput.maxLength = 80;
+        nameInput.dataset.id = p.id;
+        nameInput.setAttribute('aria-label', 'Name for ' + (p.type === 'Corp' ? 'corporate' : 'startup'));
+        nameInput.addEventListener('change', () => {
+          const next = String(nameInput.value || '').trim();
+          if (!next) {
+            nameInput.value = p.name;
+            return;
+          }
+          if (next === p.name) return;
+          p.name = next;
+          populateDelayCorpSelect();
+          populateExportScope();
+          syncDelayControls();
+          renderPinnedEditors();
+          requestScheduleUpdate();
+        });
+
         const sel = document.createElement('select');
         sel.setAttribute('aria-label', 'Business category for ' + p.name);
         for (const sec of opts) {
@@ -1639,11 +2607,20 @@
         sel.addEventListener('change', () => {
           p.sector = sel.value;
           renderPinnedEditors();
-          renderSchedule();
-          scheduleSave();
+          requestScheduleUpdate();
         });
-        row.appendChild(label);
+
+        const rm = document.createElement('button');
+        rm.type = 'button';
+        rm.className = 'part-remove';
+        rm.textContent = '✕';
+        rm.setAttribute('aria-label', 'Remove ' + p.name);
+        rm.title = 'Remove participant';
+        rm.addEventListener('click', () => removeParticipant(p.id));
+
+        row.appendChild(nameInput);
         row.appendChild(sel);
+        row.appendChild(rm);
         els.sectorEditors.appendChild(row);
       }
     }
@@ -1685,18 +2662,15 @@
       rm.addEventListener('click', () => {
         fixedPairings.splice(idx, 1);
         renderPinnedEditors();
-        renderSchedule();
-        scheduleSave();
+        requestScheduleUpdate();
       });
       su.addEventListener('change', () => {
         pin.startupId = su.value;
-        renderSchedule();
-        scheduleSave();
+        requestScheduleUpdate();
       });
       co.addEventListener('change', () => {
         pin.corporateId = co.value;
-        renderSchedule();
-        scheduleSave();
+        requestScheduleUpdate();
       });
       wrap.appendChild(su);
       wrap.appendChild(co);
@@ -1708,10 +2682,10 @@
   function addPinnedRow() {
     fixedPairings.push({ startupId: '', corporateId: '' });
     renderPinnedEditors();
-    renderSchedule();
-    scheduleSave();
+    requestScheduleUpdate();
   }
 
+  // --- Render (grid & export): cells, meta line, print handout, thead/tbody ---
   function cellHtml(meeting) {
     if (!meeting) {
       return '<span class="cell-empty">Open slot</span>';
@@ -1750,44 +2724,9 @@
     return m.s.name + ' with ' + m.c.name + ' (' + m.s.sector + ')';
   }
 
-  function scheduleMetaLine() {
-    const slotTimes = getSlotTimes();
-    const nC = participants.filter((p) => p.type === 'Corp').length;
-    const nS = participants.filter((p) => p.type === 'Startup').length;
-    const sm = eventConfig.slotMinutes || 60;
-    const R = eventConfig.tableCount;
-    const suLabel = nS === 1 ? '1 startup' : nS + ' startups';
-    const coLabel = nC === 1 ? '1 corporate' : nC + ' corporates';
-    if (!slotTimes.length) {
-      return suLabel + ' · ' + coLabel + ' · adjust day start and end to generate time slots.';
-    }
-    const nSlots = slotTimes.length;
-    const dayEnd = minutesToTime(timeToMinutes(slotTimes[nSlots - 1]) + sm);
-    const slotPhrase = nSlots === 1 ? '1 time slot' : nSlots + ' time slots';
-    const roomPhrase = R === 1 ? '1 parallel room' : R + ' parallel rooms';
-    return (
-      suLabel +
-      ' · ' +
-      coLabel +
-      ' · ' +
-      slotPhrase +
-      ' × ' +
-      roomPhrase +
-      ' · ' +
-      sm +
-      '-minute meetings · ' +
-      slotTimes[0] +
-      '–' +
-      dayEnd
-    );
-  }
-
   function updateBrandAndTitle() {
     readEventFromDom();
-    if (els.brandDesc) els.brandDesc.textContent = scheduleMetaLine();
-    const R = eventConfig.tableCount;
-    els.scheduleTitle.textContent =
-      R === 2 ? 'Working calendar · Rooms A & B' : 'Working calendar · ' + R + ' parallel rooms';
+    els.scheduleTitle.textContent = 'Working calendar';
   }
 
   function renderPrintHandout(plan) {
@@ -1983,41 +2922,14 @@
     updateBrandAndTitle();
   }
 
-  function scheduleToTSV() {
-    const plan = lastPlan || computeSchedule();
-    const pid = getExportFilterPid();
-    const R = Math.min(MAX_TABLES, Math.max(1, eventConfig.tableCount || 1));
-    const headers = ['Time slot'].concat(Array.from({ length: R }, (_, i) => roomLabel(i)));
-    if (!pid) {
-      const lines = [headers.join('\t')];
-      for (const r of plan.rows) {
-        const row = [slotEndLabel(r.time)].concat(Array.from({ length: R }, (_, i) => fmtMeeting(r.cells[i])));
-        lines.push(row.join('\t'));
-      }
-      return lines.join('\n');
-    }
-    const lines = ['Time\tRoom\tPartner\tSector'];
-    for (const r of plan.rows) {
-      const slot = slotEndLabel(r.time);
-      for (let ri = 0; ri < R; ri++) {
-        const cell = r.cells[ri];
-        if (cell && (cell.s.id === pid || cell.c.id === pid)) {
-          const partner = cell.s.id === pid ? cell.c.name : cell.s.name;
-          lines.push([slot, roomLabel(ri), partner, cell.s.sector].join('\t'));
-        }
-      }
-    }
-    if (lines.length === 1) {
-      lines.push('(no meetings in this plan)\t\t\t');
-    }
-    return lines.join('\n');
-  }
-
+  // --- Export: roster CSV template ---
   function downloadTemplate() {
     const csv =
       'name,type,sector\n' +
-      'Example Corp,Corp,Automotive\n' +
-      'Example Startup,Startup,Automotive\n';
+      'Example Corp One,Corp,Automotive\n' +
+      'Example Startup One,Startup,Automotive\n' +
+      'Example Corp Two,Corp,Electronics\n' +
+      'Example Startup Two,Startup,Electronics\n';
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -2042,11 +2954,11 @@
     syncDelayControls();
     renderSectorEditors();
     renderPinnedEditors();
-    renderSchedule();
-    scheduleSave();
+    requestScheduleUpdate();
     toast('Roster loaded');
   }
 
+  // --- DOM event wiring (inputs, modal, print, boot) ---
   els.rosterFile.addEventListener('change', () => {
     const f = els.rosterFile.files && els.rosterFile.files[0];
     els.rosterFile.value = '';
@@ -2090,46 +3002,47 @@
     syncDelayControls();
     renderSectorEditors();
     renderPinnedEditors();
-    renderSchedule();
-    scheduleSave();
-    toast('Demo roster restored');
+    requestScheduleUpdate();
+    toast('Demo roster restored for this event');
   });
 
+  els.eventSelect.addEventListener('change', () => {
+    activateEventById(els.eventSelect.value);
+  });
+  els.btnEventNew.addEventListener('click', addNewEventFromUi);
+  els.btnEventDelete.addEventListener('click', deleteActiveEventFromUi);
+  els.btnClearData.addEventListener('click', clearAllData);
+
   els.btnAddPin.addEventListener('click', addPinnedRow);
+  els.btnAddCorp.addEventListener('click', () => addParticipant('Corp'));
+  els.btnAddStartup.addEventListener('click', () => addParticipant('Startup'));
 
   ['change', 'input'].forEach((ev) => {
     els.dayStart.addEventListener(ev, () => {
-      renderSchedule();
-      scheduleSave();
+      requestScheduleUpdate();
     });
     els.dayEnd.addEventListener(ev, () => {
-      renderSchedule();
-      scheduleSave();
+      requestScheduleUpdate();
     });
     els.slotMinutes.addEventListener(ev, () => {
-      renderSchedule();
-      scheduleSave();
+      requestScheduleUpdate();
     });
     els.tableCount.addEventListener(ev, () => {
-      renderSchedule();
-      scheduleSave();
+      requestScheduleUpdate();
     });
   });
 
   els.delayEnabled.addEventListener('change', () => {
     delayEnabled = els.delayEnabled.checked;
-    renderSchedule();
-    scheduleSave();
+    requestScheduleUpdate();
   });
   els.delayCorpId.addEventListener('change', () => {
     delayCorpId = els.delayCorpId.value;
-    renderSchedule();
-    scheduleSave();
+    requestScheduleUpdate();
   });
   els.delayFromTime.addEventListener('change', () => {
     delayFromTime = els.delayFromTime.value || '09:00';
-    renderSchedule();
-    scheduleSave();
+    requestScheduleUpdate();
   });
 
   els.btnPrint.addEventListener('click', () => window.print());
@@ -2139,19 +3052,26 @@
     scheduleSave();
   });
 
-  els.btnCopy.addEventListener('click', async () => {
-    const tsv = scheduleToTSV();
-    try {
-      await navigator.clipboard.writeText(tsv);
-      toast(getExportFilterPid() ? 'Copied TSV for selected company' : 'Schedule copied as TSV');
-    } catch (_) {
-      toast('Copy blocked — select and copy manually');
-    }
+  document.querySelectorAll('.js-open-settings').forEach((btn) => {
+    btn.setAttribute('aria-expanded', 'false');
+    btn.setAttribute('aria-haspopup', 'dialog');
+    btn.addEventListener('click', openSettingsModal);
+  });
+  els.btnCloseSettings.addEventListener('click', closeSettingsModal);
+  els.btnSettingsCancel.addEventListener('click', closeSettingsModal);
+  els.settingsModalBackdrop.addEventListener('click', closeSettingsModal);
+  els.btnGenerateSchedule.addEventListener('click', generateScheduleFromEditor);
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || !settingsModalOpen) return;
+    e.preventDefault();
+    closeSettingsModal();
   });
 
+  // --- Initial render & hydrate ---
   populateTableCountSelect();
   load();
   applyEventToDom();
+  renderEventSelect();
   populateExportScope();
   populateDelayCorpSelect();
   syncDelayControls();
